@@ -1030,8 +1030,8 @@ async def recycle(cmd):
 	user_data = EwUser(member=cmd.message.author)
 	response = ""
 
-	if cmd.message.channel.name not in [ewcfg.channel_recyclingplant, ewcfg.channel_crookline_plant, ewcfg.channel_poloniumhill_plant, ewcfg.channel_vagrantscorner_plant]:
-		response = "You can only {} your trash at a SlimeCorp Recycling Plant, such as the one in Smogsburg.".format(cmd.tokens[0])
+	if cmd.message.channel.name != ewcfg.channel_recyclingplant:
+		response = "You can only {} your trash at the SlimeCorp Recycling Plant in Smogsburg.".format(cmd.tokens[0])
 		return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
 
 	item_search = ewutils.flattenTokenListToString(cmd.tokens[1:])
