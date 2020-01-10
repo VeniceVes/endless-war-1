@@ -114,7 +114,9 @@ poi_id_slimesea = "slimesea"
 poi_id_slimesendcliffs = "slimesendcliffs"
 poi_id_greencakecafe = "greencakecafe"
 poi_id_sodafountain = "sodafountain"
-
+poi_id_crookline_plant = "crooklineplant"
+poi_id_poloniumhill_plant = "poloniumhillplant"
+poi_id_vagrantscorner_plant = "vagrantscornerplant"
 
 
 # transports
@@ -435,6 +437,9 @@ channel_apt = "apartment"
 channel_sodafountain = "the-bicarbonate-soda-fountain"
 channel_greencakecafe = "green-cake-cafe"
 channel_glocksburycomics = "glocksbury-comics"
+channel_crookline_plant = "crookline-recycling-plant"
+channel_poloniumhill_plant = "polonium-hill-recycling-plant"
+channel_vagrantscorner_plant = "vagrants-corner-recycling-plant"
 
 channel_wt_port = "wreckington-port"
 channel_vc_port = "vagrants-corner-port"
@@ -1967,7 +1972,7 @@ item_id_n8heads = "n8heads"
 item_id_strauberryshortcakes = "strauberryshortcakes"
 item_id_chutzpahcherries = "chutzpahcherries"
 item_id_n3crunch = "n3crunch"
-item_id_slimesours = "slimesours"
+item_id_slimesours = "slimesours"w
 
 #slimeoid food
 item_id_fragilecandy = "fragilecandy" #+chutzpah -grit
@@ -9619,6 +9624,54 @@ poi_list = [
 		role="The Bicarbonate Soda Fountain",
 		mother_district=poi_id_krakbay,
 		is_subzone=True
+	),
+	EwPoi(  # Crookline Recycling Plant
+		id_poi=poi_id_crookline_plant,
+		alias=[
+			"crooklinerecyclingplant",
+			"crooklineplant",
+			"clplant",
+			"clp",
+		],
+		str_name="The Crookline Recycling Plant",
+		str_desc="Local authorities thought this place might cut down on Crookline's excessive pollution due to rampant construction projects regularly crowding the district. Little did they know it would wind up becoming the number one spot that thieves and serial killers alike use to toss away and eliminate evidence... permanently.\n\nExits into Crookline.",
+		channel=channel_crookline_plant,
+		role="Crookline Recycling Plant",
+		pvp=False,
+		is_subzone=True,
+		mother_district=poi_id_crookline
+	),
+	EwPoi(  # Polonium Hill Recycling Plant
+		id_poi = poi_id_poloniumhill_plant,
+		alias = [
+			"poloniumhillrecyclingplant",
+			"poloniumhillplant",
+			"phplant",
+			"php",
+		],
+		str_name = "The Polonium Hill Recycling Plant",
+		str_desc = "In an audacious moral grandstand, the planning committee of Polonium Hill's upper-middle-class neighborhood added this recycling facility to 'go green'. You stop to think that maybe they should have added it to Toxington instead if that were the goal, but then you realize that the district in question is probably fucked beyond repair, making this place the next best choice.\n\nExits into Polonium Hill.",
+		channel = channel_poloniumhill_plant,
+		role = "Polonium Hill Recycling Plant",
+		pvp = False,
+		is_subzone = True,
+		mother_district = poi_id_poloniumhill
+	),
+	EwPoi(  # Vagrants Corner Recycling Plant
+		id_poi = poi_id_vagrantscorner_plant,
+		alias = [
+			"vagrantscornerrecyclingplant",
+			"vagrantscornerplant",
+			"vcplant",
+			"vcpl",
+		],
+		str_name = "The Vagrants Corner Recycling Plant",
+		str_desc = "Holy moly, this place smells like an oceanic holocaust! Must be from all the fish that get tossed into the grinder, which convientley spews its toxic remains right into the Slime Sea. You wonder how there are any fish left in the ocean when shit like this constantly threatens their existence on a day to day basis, but perhaps the same could be said of any denizen of the city as well.\n\nExits into New New Yonkers.",
+		channel = channel_vagrantscorner_plant,
+		role = "Vagrants Corner Recycling Plant",
+		pvp = False,
+		is_subzone = True,
+		mother_district = poi_id_vagrantscorner
 	),
 	EwPoi(  # Ferry
 		id_poi = poi_id_ferry,
