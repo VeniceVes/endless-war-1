@@ -1984,6 +1984,8 @@ item_id_insidiouscandy = "insidiouscandy" #+chutzpah -moxie
 #slimeoid held items
 item_id_moxiemegameal = "moxiemegameal"
 item_id_chutzpahcherrysoda = "chutzpahcherrysoda"
+item_id_gritgruel = "gritgruel"
+item_id_skittishbrainscrambler = "skittishbrainscrambler"
 
 #vegetable ids
 item_id_poketubers = "poketubers"
@@ -2614,7 +2616,7 @@ item_list = [
 		price = 10000,
 		str_activate = "**{} chews on its Moxie Mega Meal! Its moxie goes up by 1!**",
 		str_deactivate = "**{} has fully digested its Moxie Mega Meal. Its moxie returns to normal.**",
-		turn_count = 3,
+		turn_count = 10,
 		trigger_condition = "largedamage",
 	),
 	EwSlimeoidHeldItem(
@@ -2628,9 +2630,37 @@ item_list = [
 		price = 10000,
 		str_activate = "**{} slurps up its Chutzpah Cherry Soda! Its chutzpah goes up by 1!**",
 		str_deactivate = "**{} has fully digested its Chutzpah Cherry Soda. Its chutzpah returns to normal.**",
+		turn_count = 10,
+		trigger_condition = "largedamage",
+	),
+	EwSlimeoidHeldItem(
+		id_item = item_id_gritgruel,
+		alias = [
+			"grgr"
+		],
+		str_name = "Grit Gruel",
+		str_desc = "An item held by slimeoids. Increases grit by 1 when your slimeoid gets hit for massive damage.",
+		vendors = [vendor_glocksburycomics],
+		price = 10000,
+		str_activate = "**{} heartily enjoys its Grit Gruel! Its grit goes up by 1!**",
+		str_deactivate = "**{} has fully digested its Grit Gruel. Its grit returns to normal.**",
 		turn_count = 3,
 		trigger_condition = "largedamage",
-	)
+	),
+	EwSlimeoidHeldItem(
+		id_item = item_id_skittishbrainscrambler,
+		alias = [
+			"sbc"
+		],
+		str_name = "Skittish Brain Scrambler",
+		str_desc = "An item held by slimeoids. Gives your slimeoid a skittish and jumpy brain when hit for massive damage.",
+		vendors = [vendor_glocksburycomics],
+		price = 10000,
+		str_activate = "**{} activates its Skittish Brain Scrambler! It starts to spaz the heck out!**",
+		str_deactivate = "**{}'s Skittish Brain Scrambler breaks down. Its brain returns to normal.**",
+		turn_count = 3,
+		trigger_condition = "largedamage",
+	),
 ]
 item_list += ewdebug.debugitem_set
 

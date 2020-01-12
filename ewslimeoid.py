@@ -881,6 +881,7 @@ class EwSlimeoidCombatData:
 		# apply damage
 		self.hp -= damage
 		hp = self.hp
+		hpmax = self.hpmax
 
 		# crush sap on physical attacks only
 		sap_crush = 0
@@ -925,8 +926,10 @@ class EwSlimeoidCombatData:
 
 			if sap_crush > 0:
 				response += " (-{} hardened sap)".format(sap_crush)
+				
+			print("DAMAGE: {}".format(damage))
 
-			if damage >= 1 and self.slimeoid.held_item != "" and self.held_item_active != -1:
+			if hp/damage < 8  and self.slimeoid.held_item != "" and self.held_item_active != -1:
 				held_item_data = EwItem(id_item=self.slimeoid.held_item)
 				held_item_data_props = held_item_data.item_props
 				
@@ -2758,10 +2761,10 @@ async def battle_slimeoids(id_s1, id_s2, channel, battle_type):
 		if s2_combat_data.item_active_turns > 0:
 			s2_combat_data.item_active_turns -= 1
 
-		print( "DEBUG S1 CHUTZ: {}".format(s1_combat_data.chutzpah))
+		print( "DEBUG S1 GRIT: {}".format(s1_combat_data.grit))
 		print( "DEBUG S1 HIA: {}".format(s1_combat_data.held_item_active))
 		print( "DEBUG S1 IAT: {}".format(s1_combat_data.item_active_turns))
-		print( "DEBUG S2 MOXIE: {}".format(s2_combat_data.moxie))
+		print( "DEBUG S2 BRAIN: {}".format(s2_combat_data.brain))
 		print( "DEBUG S2 HIA: {}".format(s2_combat_data.held_item_active))
 		print( "DEBUG S2 IAT: {}".format(s2_combat_data.item_active_turns))
 
@@ -3069,16 +3072,25 @@ def apply_item_effects(combat_data):
 	response = ""
 	held_item_data = EwItem(id_item=combat_data.held_item)
 	held_item_data_props = held_item_data.item_props
+	
+	held_item_type = held_item_data.item_props.get("id_item")
 
-	if held_item_data.item_props.get("id_item") == ewcfg.item_id_moxiemegameal:
+	if held_item_type == ewcfg.item_id_moxiemegameal:
 		combat_data.moxie += 1
 		print("MOXIE INCREASED")
-		response = ("\n" + held_item_data_props['str_activate'].format(combat_data.name))
 
-	if held_item_data.item_props.get("id_item") == ewcfg.item_id_chutzpahcherrysoda:
+	elif held_item_type == ewcfg.item_id_chutzpahcherrysoda:
 		combat_data.chutzpah += 1
 		print("CHUTZPAH INCREASED")
-		response = ("\n" + held_item_data_props['str_activate'].format(combat_data.name))
+
+	elif held_item_type == ewcfg.item_id_gritgruel:
+		combat_data.grit += 1
+		print("GRIT INCREASED")
+	
+	elif held_item_type == ewcfg.item_id_skittishbrainscrambler:
+		combat_data.brain = ewcfg.brain_map.get("e")
+	
+	response = ("\n" + held_item_data_props['str_activate'].format(combat_data.name))
 
 	combat_data.held_item_active = -1  # item gets used up
 
@@ -3089,15 +3101,24 @@ def remove_item_effects(combat_data):
 	held_item_data = EwItem(id_item=combat_data.held_item)
 	held_item_data_props = held_item_data.item_props
 
-	if held_item_data.item_props.get("id_item") == ewcfg.item_id_moxiemegameal:
+	held_item_type = held_item_data.item_props.get("id_item")
+
+	if held_item_type == ewcfg.item_id_moxiemegameal:
 		combat_data.moxie -= 1
 		print("MOXIE DECREASED")
-		response = ("\n" + held_item_data_props['str_deactivate'].format(combat_data.name))
 
-	if held_item_data.item_props.get("id_item") == ewcfg.item_id_chutzpahcherrysoda:
+	elif held_item_type == ewcfg.item_id_chutzpahcherrysoda:
 		combat_data.chutzpah -= 1
 		print("CHUTZPAH DECREASED")
-		response = ("\n" + held_item_data_props['str_deactivate'].format(combat_data.name))
+		
+	elif held_item_type == ewcfg.item_id_gritgruel:
+		combat_data.grit -= 1
+		print("GRIT DECREASED")
+	
+	elif held_item_type == ewcfg.item_id_skittishbrainscrambler:
+		combat_data.brain = ewcfg.brain_map.get(combat_data.slimeoid.ai)
+	
+	response = ("\n" + held_item_data_props['str_deactivate'].format(combat_data.name))
 	
 	combat_data.item_active_turns = -1
 
