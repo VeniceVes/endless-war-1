@@ -140,6 +140,24 @@ async def weather_tick(id_server = None):
 						slimeoid_response = "*{uname}*: {slname} cries out in pain, as it's hit by the bicarbonate rain.".format(uname = player_data.display_name, slname = slimeoid_data.name)
 
 					else:
+						# Dedorn all items
+						cosmetics = ewitem.inventory(
+							id_user=user_data.id_user,
+							id_server=user_data.id_server,
+							item_type_filter=ewcfg.it_cosmetic
+						)
+						# get the cosmetics worn by the slimeoid
+						for item in cosmetics:
+							cos = EwItem(id_item=item.get('id_item'))
+							if cos.item_props.get('slimeoid') == 'true':
+								cos.item_props['slimeoid'] = 'false'
+								cos.persist()
+
+						# get the held item of the slimeoid
+						held_item = EwItem(id_item=slimeoid_data.held_item)
+						ewitem.give_item(id_item=held_item.id_item, id_user=user_data.id_user, id_server=user_data.id_server)
+
+
 						item_props = {
 							'context': ewcfg.context_slimeoidheart,
 							'subcontext': slimeoid_data.id_slimeoid,

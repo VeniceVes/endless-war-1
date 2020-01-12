@@ -202,6 +202,7 @@ CREATE TABLE slimeoids (
 	clout int NOT NULL DEFAULT '0',
 	hue varchar(32) NOT NULL DEFAULT '',
 	poi varchar(64) NOT NULL DEFAULT '',
+	held_item varchar(128) NOT NULL DEFAULT '',
 	
 	PRIMARY KEY (id_slimeoid)
 );

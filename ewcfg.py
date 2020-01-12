@@ -13,7 +13,7 @@ from ewfood import EwFood
 from ewitem import EwItemDef, EwGeneralItem
 from ewmap import EwPoi
 from ewmutation import EwMutationFlavor
-from ewslimeoid import EwBody, EwHead, EwMobility, EwOffense, EwDefense, EwSpecial, EwBrain, EwHue, EwSlimeoidFood
+from ewslimeoid import EwBody, EwHead, EwMobility, EwOffense, EwDefense, EwSpecial, EwBrain, EwHue, EwSlimeoidFood, EwSlimeoidHeldItem
 from ewquadrants import EwQuadrantFlavor
 from ewtransport import EwTransportLine
 from ewstatuseffects import EwStatusEffectDef
@@ -876,6 +876,8 @@ cmd_dress_slimeoid = cmd_prefix + 'dressslimeoid'
 cmd_dress_slimeoid_alt1 = cmd_prefix + 'decorateslimeoid'
 cmd_undress_slimeoid = cmd_prefix + 'undressslimeoid'
 cmd_undress_slimeoid_alt1 = cmd_prefix + 'undecorateslimeoid'
+cmd_equip_slimeoid = cmd_prefix + 'equipslimeoid'
+cmd_unequip_slimeoid = cmd_prefix + 'unequipslimeoid'
 
 cmd_add_quadrant = cmd_prefix + "addquadrant"
 cmd_get_quadrants = cmd_prefix + "quadrants"
@@ -1190,7 +1192,7 @@ cd_boombust = 22
 #For possible time limit on russian roulette
 cd_rr = 600
 #slimeoid downtime after a defeat
-cd_slimeoiddefeated = 300
+cd_slimeoiddefeated = 5
 cd_scavenge = 0
 soft_cd_scavenge = 15 # Soft cooldown on scavenging
 cd_enlist = 60
@@ -1528,6 +1530,7 @@ col_level = 'level'
 col_time_defeated = 'time_defeated'
 col_clout = 'clout'
 col_hue = 'hue'
+col_held_item = 'held_item'
 
 #Database columns for enemies
 col_id_enemy = 'id_enemy'
@@ -1882,6 +1885,7 @@ stats_clear_on_death = [
 context_slimeoidheart = 'slimeoidheart'
 context_slimeoidbottle = 'slimeoidbottle'
 context_slimeoidfood = 'slimeoidfood'
+context_slimeoidhelditem = 'slimeoidhelditem'
 context_wrappingpaper = 'wrappingpaper'
 
 # Item vendor names.
@@ -1976,6 +1980,10 @@ item_id_recklesscandy = "recklesscandy" #+moxie -grit
 item_id_reservedcandy = "reservedcandy" #+grit -moxie
 item_id_bluntcandy = "bluntcandy" #+moxie -chutzpah
 item_id_insidiouscandy = "insidiouscandy" #+chutzpah -moxie
+
+#slimeoid held items
+item_id_moxiemegameal = "moxiemegameal"
+item_id_chutzpahcherrysoda = "chutzpahcherrysoda"
 
 #vegetable ids
 item_id_poketubers = "poketubers"
@@ -2595,6 +2603,34 @@ item_list = [
 		increase = slimeoid_stat_moxie,
 		decrease = slimeoid_stat_chutzpah,
 	),
+	EwSlimeoidHeldItem(
+		id_item = item_id_moxiemegameal,
+		alias = [
+			"mmm"
+		],
+		str_name = "Moxie Mega Meal",
+		str_desc = "An item held by slimeoids. Increases moxie by 1 when your slimeoid gets hit for massive damage.",
+		vendors = [vendor_glocksburycomics],
+		price = 10000,
+		str_activate = "**{} chews on its Moxie Mega Meal! Its moxie goes up by 1!**",
+		str_deactivate = "**{} has fully digested its Moxie Mega Meal. Its moxie returns to normal.**",
+		turn_count = 3,
+		trigger_condition = "largedamage",
+	),
+	EwSlimeoidHeldItem(
+		id_item = item_id_chutzpahcherrysoda,
+		alias = [
+			"ccs"
+		],
+		str_name = "Chutzpah Cherry Soda",
+		str_desc = "An item held by slimeoids. Increases chutzpah by 1 when your slimeoid gets hit for massive damage.",
+		vendors = [vendor_glocksburycomics],
+		price = 10000,
+		str_activate = "**{} slurps up its Chutzpah Cherry Soda! Its chutzpah goes up by 1!**",
+		str_deactivate = "**{} has fully digested its Chutzpah Cherry Soda. Its chutzpah returns to normal.**",
+		turn_count = 3,
+		trigger_condition = "largedamage",
+	)
 ]
 item_list += ewdebug.debugitem_set
 
@@ -14842,6 +14878,11 @@ zine_commands = [
 	cmd_setpages_alt_1,
 	cmd_setpages_alt_2,
 	]
+
+# slimeoid_held_item_ids = [ # used 
+# 	item_id_moxiemegameal,
+# 	item_id_chutzpahcherrysoda,
+# ]
 
 # lists of all the discord server objects served by bot, identified by the server id
 server_list = {}

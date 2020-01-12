@@ -1400,6 +1400,11 @@ def gen_item_props(item):
 		if item.context == ewcfg.context_slimeoidfood:
 			item_props["increase"] = item.increase
 			item_props["decrease"] = item.decrease
+		if item.context == ewcfg.context_slimeoidhelditem:
+			item_props["str_activate"] = item.str_activate
+			item_props["str_deactivate"] = item.str_deactivate
+			item_props["turn_count"] = item.turn_count
+			item_props["trigger_condition"] = item.trigger_condition
 
 	elif item.item_type == ewcfg.it_weapon:
 		captcha = ""

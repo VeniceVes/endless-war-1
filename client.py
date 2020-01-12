@@ -511,6 +511,8 @@ cmd_map = {
 	ewcfg.cmd_dress_slimeoid_alt1: ewslimeoid.dress_slimeoid,
 	ewcfg.cmd_undress_slimeoid: ewslimeoid.undress_slimeoid,
 	ewcfg.cmd_undress_slimeoid_alt1: ewslimeoid.undress_slimeoid,
+	ewcfg.cmd_equip_slimeoid: ewslimeoid.equipslimeoid,
+	ewcfg.cmd_unequip_slimeoid: ewslimeoid.unequipslimeoid,
 
 	# Negaslimeoids
 

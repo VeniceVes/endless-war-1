@@ -42,6 +42,7 @@ class EwSlimeoid:
 	clout = 0
 	hue = ""
 	poi = ""
+	held_item = ""
 
 	#slimeoid = EwSlimeoid(member = cmd.message.author, )
 	#slimeoid = EwSlimeoid(id_slimeoid = 12)
@@ -81,7 +82,7 @@ class EwSlimeoid:
 				cursor = conn.cursor();
 
 				# Retrieve object
-				cursor.execute("SELECT {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {} FROM slimeoids{}".format(
+				cursor.execute("SELECT {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {} FROM slimeoids{}".format(
 					ewcfg.col_id_slimeoid,
 					ewcfg.col_id_user,
 					ewcfg.col_id_server,
@@ -103,6 +104,7 @@ class EwSlimeoid:
 					ewcfg.col_clout,
 					ewcfg.col_hue,
 					ewcfg.col_poi,
+					ewcfg.col_held_item,
 					query_suffix
 				))
 				result = cursor.fetchone();
@@ -130,6 +132,7 @@ class EwSlimeoid:
 					self.clout = result[18]
 					self.hue = result[19]
 					self.poi = result[20]
+					self.held_item = result[21]
 
 			finally:
 				# Clean up the database handles.
@@ -145,7 +148,7 @@ class EwSlimeoid:
 			cursor = conn.cursor();
 
 			# Save the object.
-			cursor.execute("REPLACE INTO slimeoids({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)".format(
+			cursor.execute("REPLACE INTO slimeoids({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)".format(
 				ewcfg.col_id_slimeoid,
 				ewcfg.col_id_user,
 				ewcfg.col_id_server,
@@ -166,7 +169,8 @@ class EwSlimeoid:
 				ewcfg.col_time_defeated,
 				ewcfg.col_clout,
 				ewcfg.col_hue,
-				ewcfg.col_poi
+				ewcfg.col_poi,
+				ewcfg.col_held_item
 			), (
 				self.id_slimeoid,
 				self.id_user,
@@ -188,7 +192,8 @@ class EwSlimeoid:
 				self.time_defeated,
 				self.clout,
 				self.hue,
-				self.poi
+				self.poi,
+				self.held_item
 			))
 
 			conn.commit()
@@ -564,6 +569,56 @@ class EwSlimeoidFood:
 		self.vendors = vendors
 		self.increase = increase
 		self.decrease = decrease
+		
+"""
+	Slimeoid held items
+"""
+class EwSlimeoidHeldItem:
+	item_type = "item"
+	id_item = " "
+	alias = []
+	context = "slimeoidhelditem"
+	str_name = ""
+	str_desc = ""
+	ingredients = ""
+	acquisition = ""
+	price = 0
+	vendors = []
+
+	str_activate = ""
+	str_deactivate = ""
+	turn_count = 0
+	trigger_condition = ""
+
+	def __init__(
+		self,
+		id_item = " ",
+		alias = [],
+		str_name = "",
+		str_desc = "",
+		ingredients = "",
+		acquisition = "",
+		price = 0,
+		vendors = [],
+		str_activate="",
+		str_deactivate = "",
+		turn_count = 0,
+		trigger_condition = "",
+	):
+		self.item_type = ewcfg.it_item
+		self.id_item = id_item
+		self.alias = alias
+		self.context = ewcfg.context_slimeoidhelditem
+		self.str_name = str_name
+		self.str_desc = str_desc
+		self.ingredients = ingredients
+		self.acquisition = acquisition
+		self.price = price
+		self.vendors = vendors
+		self.str_activate = str_activate
+		self.str_deactivate = str_deactivate
+		self.turn_count = turn_count
+		self.trigger_condition = trigger_condition
 
 # manages a slimeoid's combat stats during a slimeoid battle
 class EwSlimeoidCombatData:
@@ -615,6 +670,15 @@ class EwSlimeoidCombatData:
 
 	# slimeoid shock (reduces effective sap)
 	shock = 0
+	
+	# slimeoid held item
+	held_item = ""
+	
+	# held item activation state (-1 = used up, 0 = unactivated, 1 = currently activated)
+	held_item_active = 0
+	
+	# held item turn count (-2 = always active, -1 = fully deactivated, 0 = about to be deactivated, any other number is indicative of how many turns it has left to be used)
+	item_active_turns = 0
 
 	# slimeoid database object (EwSlimeoid)
 	slimeoid = None
@@ -652,6 +716,9 @@ class EwSlimeoidCombatData:
 		hp = 0,
 		sapmax = 0,
 		sap = 0,
+		held_item = "",
+		held_item_active = 0,
+		item_active_turns = 0,
 		slimeoid = None,
 		owner = None
 	):
@@ -671,6 +738,9 @@ class EwSlimeoidCombatData:
 		self.sap = sap
 		self.hardened_sap = 0
 		self.shock = 0
+		self.held_item = held_item
+		self.held_item_active = 0
+		self.item_active_turns = 0
 		self.slimeoid = slimeoid
 		self.owner = owner
 	
@@ -856,7 +926,16 @@ class EwSlimeoidCombatData:
 			if sap_crush > 0:
 				response += " (-{} hardened sap)".format(sap_crush)
 
-
+			if damage >= 1 and self.slimeoid.held_item != "" and self.held_item_active != -1:
+				held_item_data = EwItem(id_item=self.slimeoid.held_item)
+				held_item_data_props = held_item_data.item_props
+				
+				if held_item_data_props['trigger_condition'] == 'largedamage':
+					self.held_item_active = 1
+					self.item_active_turns = int(held_item_data_props['turn_count'])
+					
+					print(int(held_item_data_props['turn_count']))
+						
 		return response
 
 	# obtain movement response
@@ -1176,6 +1255,11 @@ async def dissolveslimeoid(cmd):
 				if cos.item_props.get('slimeoid') == 'true':
 					cos.item_props['slimeoid'] = 'false'
 					cos.persist()
+					
+			# get the held item of the slimeoid
+			held_item = EwItem(id_item=slimeoid.held_item)
+			ewitem.give_item(id_item=held_item.id_item, id_user=user_data.id_user, id_server=cmd.message.server.id)
+			
 
 		slimeoid.life_state = ewcfg.slimeoid_state_none
 		slimeoid.body = ""
@@ -2050,6 +2134,13 @@ async def slimeoid(cmd):
 
 		if len(adorned_cosmetics) > 0:
 			response += "\n\nIt has {} adorned.".format(ewutils.formatNiceList(adorned_cosmetics, "and"))
+			
+		# get the item the slimeoid is holding
+		if slimeoid.held_item != "":
+			held_item_data = EwItem(id_item=slimeoid.held_item)
+			held_item_name = held_item_data.item_props.get('item_name')
+			
+			response += "\n\nIt is holding a {}".format(held_item_name)
 
 	# Send the response to the player.
 	await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
@@ -2347,6 +2438,11 @@ async def negaslimeoidbattle(cmd):
 				if cos.item_props.get('slimeoid') == 'true':
 					cos.item_props['slimeoid'] = 'false'
 					cos.persist()
+			
+			# get the held item of the slimeoid
+			held_item = EwItem(id_item=challenger_slimeoid.held_item)
+			ewitem.give_item(id_item=held_item.id_item, id_user=challenger.id_user, id_server=cmd.message.server.id)
+			
 			# Losing in a nega battle means death
 			item_props = {
 				'context': ewcfg.context_slimeoidheart,
@@ -2562,6 +2658,9 @@ async def battle_slimeoids(id_s1, id_s2, channel, battle_type):
 		hp = s1hpmax,
 		sapmax = s1sapmax,
 		sap = s1sapmax,
+		held_item=challengee_slimeoid.held_item,
+		held_item_active=0,
+		item_active_turns=0,
 		slimeoid = challengee_slimeoid,
 		owner = challengee,
 	)
@@ -2582,6 +2681,9 @@ async def battle_slimeoids(id_s1, id_s2, channel, battle_type):
 		hp = s2hpmax,
 		sapmax = s2sapmax,
 		sap = s2sapmax,
+		held_item=challenger_slimeoid.held_item,
+		held_item_active=0,
+		item_active_turns=0,
 		slimeoid = challenger_slimeoid,
 		owner = challenger,
 	)
@@ -2646,6 +2748,23 @@ async def battle_slimeoids(id_s1, id_s2, channel, battle_type):
 		else:
 			active_data = s2_combat_data
 			passive_data = s1_combat_data
+			
+		# apply item effects
+		await check_for_item_effects(s1_combat_data, client, channel)
+		await check_for_item_effects(s2_combat_data, client, channel)
+
+		if s1_combat_data.item_active_turns > 0:
+			s1_combat_data.item_active_turns -= 1
+		if s2_combat_data.item_active_turns > 0:
+			s2_combat_data.item_active_turns -= 1
+
+		print( "DEBUG S1 CHUTZ: {}".format(s1_combat_data.chutzpah))
+		print( "DEBUG S1 HIA: {}".format(s1_combat_data.held_item_active))
+		print( "DEBUG S1 IAT: {}".format(s1_combat_data.item_active_turns))
+		print( "DEBUG S2 MOXIE: {}".format(s2_combat_data.moxie))
+		print( "DEBUG S2 HIA: {}".format(s2_combat_data.held_item_active))
+		print( "DEBUG S2 IAT: {}".format(s2_combat_data.item_active_turns))
+
 
 		# obtain action and how much sap to spend on it for both slimeoids
 		active_strat, active_sap_spend = active_data.brain.get_strat(combat_data = active_data, active = True, in_range = in_range, first_turn = first_turn)
@@ -2929,6 +3048,61 @@ async def battle_slimeoids(id_s1, id_s2, channel, battle_type):
 		await asyncio.sleep(2)
 	return result
 
+async def check_for_item_effects(combat_data, client, channel):
+	if combat_data.held_item != "":
+		item_response = ""
+
+		if combat_data.held_item_active == -1 and combat_data.item_active_turns == 0:
+			item_response = remove_item_effects(combat_data)
+		elif combat_data.held_item_active == 1:
+			item_response = apply_item_effects(combat_data)
+		else:
+			return
+
+		if item_response != "":
+			await ewutils.send_message(client, channel, item_response)
+	else:
+		return
+
+
+def apply_item_effects(combat_data):
+	response = ""
+	held_item_data = EwItem(id_item=combat_data.held_item)
+	held_item_data_props = held_item_data.item_props
+
+	if held_item_data.item_props.get("id_item") == ewcfg.item_id_moxiemegameal:
+		combat_data.moxie += 1
+		print("MOXIE INCREASED")
+		response = ("\n" + held_item_data_props['str_activate'].format(combat_data.name))
+
+	if held_item_data.item_props.get("id_item") == ewcfg.item_id_chutzpahcherrysoda:
+		combat_data.chutzpah += 1
+		print("CHUTZPAH INCREASED")
+		response = ("\n" + held_item_data_props['str_activate'].format(combat_data.name))
+
+	combat_data.held_item_active = -1  # item gets used up
+
+	return response
+
+def remove_item_effects(combat_data):
+	response = ""
+	held_item_data = EwItem(id_item=combat_data.held_item)
+	held_item_data_props = held_item_data.item_props
+
+	if held_item_data.item_props.get("id_item") == ewcfg.item_id_moxiemegameal:
+		combat_data.moxie -= 1
+		print("MOXIE DECREASED")
+		response = ("\n" + held_item_data_props['str_deactivate'].format(combat_data.name))
+
+	if held_item_data.item_props.get("id_item") == ewcfg.item_id_chutzpahcherrysoda:
+		combat_data.chutzpah -= 1
+		print("CHUTZPAH DECREASED")
+		response = ("\n" + held_item_data_props['str_deactivate'].format(combat_data.name))
+	
+	combat_data.item_active_turns = -1
+
+	return response
+
 async def slimeoid_tick_loop(id_server):
 	while not ewutils.TERMINATE:
 		await asyncio.sleep(ewcfg.slimeoid_tick_length)
@@ -3153,6 +3327,132 @@ async def undress_slimeoid(cmd):
 			response = 'Dedorn which cosmetic? Check your **!inventory**.'
 		
 	await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
+	
+async def equipslimeoid(cmd):
+	user_data = EwUser(member = cmd.message.author)
+	slimeoid = EwSlimeoid(member=cmd.message.author)
+
+	if user_data.life_state == ewcfg.life_state_corpse:
+		response = "Slimeoids don't fuck with ghosts."
+
+	elif slimeoid.life_state == ewcfg.slimeoid_state_none:
+		response = "You'll have to create a Slimeoid if you want to get it ready for battle."
+
+	elif slimeoid.life_state == ewcfg.slimeoid_state_forming:
+		response = "Your Slimeoid is not yet ready. Use !spawnslimeoid to complete incubation."
+
+	elif slimeoid.life_state != ewcfg.slimeoid_state_active:
+		response = "You don't have a Slimeoid with you."
+
+	elif active_slimeoidbattles.get(slimeoid.id_slimeoid):
+		response = "You can't do that right now."
+
+	else:
+		item_search = ewutils.flattenTokenListToString(cmd.tokens[1:])
+		try:
+			item_id_int = int(item_search)
+		except:
+			item_id_int = None
+
+		if item_search != None and len(item_search) > 0:
+
+			general_items = ewitem.inventory(
+				id_user=cmd.message.author.id,
+				id_server=cmd.message.server.id,
+				item_type_filter=ewcfg.it_item
+			)
+
+			item_sought = None
+
+			for item in general_items:
+
+				if item.get('id_item') == item_id_int or item_search in ewutils.flattenTokenListToString(item.get('name')):
+
+					item = EwItem(id_item=item.get('id_item'))
+
+					if item.item_props.get('context') == 'slimeoidhelditem':
+						item_sought = item
+						break
+
+			if item_sought != None:
+
+				# get the held item of a slimeoid
+				current_held_item = slimeoid.held_item
+				
+				item_data = item_sought
+
+				if current_held_item != "":
+					old_held_item_data = EwItem(id_item=current_held_item)
+					
+					slimeoid.held_item = item_data.id_item
+
+					old_held_item_data.persist()
+					ewitem.give_item(id_item=old_held_item_data.id_item, id_user=user_data.id_user, id_server=cmd.message.server.id)
+
+					item_data.persist()
+					ewitem.give_item(id_item=item_data.id_item, id_user=slimeoid.id_slimeoid, id_server=cmd.message.server.id)
+
+					slimeoid.persist()
+
+					response = "You swap out your slimeoid's {} for a {}.".format(old_held_item_data.item_props.get('item_name'), item_data.item_props.get('item_name'))
+					
+				else:
+					slimeoid.held_item = item_data.id_item
+					
+					item_data.persist()
+					ewitem.give_item(id_item=item_data.id_item, id_user=slimeoid.id_slimeoid, id_server=cmd.message.server.id)
+					
+					slimeoid.persist()
+
+					response = "You equip your slimeoid with the {}.".format(item_data.item_props.get('item_name'))
+			else:
+				response = 'You can\'t equip your slimeoid with that.'
+
+		else:
+			response = 'Equip which item to your slimeoid? Check your **!inventory**.'
+
+	await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
+	
+async def unequipslimeoid(cmd):
+	user_data = EwUser(member=cmd.message.author)
+	slimeoid = EwSlimeoid(member=cmd.message.author)
+
+	if user_data.life_state == ewcfg.life_state_corpse:
+		response = "Slimeoids don't fuck with ghosts."
+
+	elif slimeoid.life_state == ewcfg.slimeoid_state_none:
+		response = "You'll have to create a Slimeoid if you want to take an item away from it."
+
+	elif slimeoid.life_state == ewcfg.slimeoid_state_forming:
+		response = "Your Slimeoid is not yet ready. Use !spawnslimeoid to complete incubation."
+
+	elif slimeoid.life_state != ewcfg.slimeoid_state_active:
+		response = "You don't have a Slimeoid with you."
+
+	elif active_slimeoidbattles.get(slimeoid.id_slimeoid):
+		response = "You can't do that right now."
+
+	else:
+		
+		current_held_item = slimeoid.held_item
+		
+		if current_held_item != "":
+			item_data = EwItem(id_item=current_held_item)
+
+			slimeoid.held_item = ""
+			
+			item_data.persist()
+			ewitem.give_item(id_item=item_data.id_item, id_user=user_data.id_user, id_server=cmd.message.server.id)
+
+			slimeoid.persist()
+
+			response = "You take the {} back from {}.".format(item_data.item_props.get('item_name'), slimeoid.name)
+		else:
+			response = "Your slimeoid isn't holding an item."
+		
+		
+	await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
+		
 
 async def unbottleslimeoid(cmd):
 	user_data = EwUser(member = cmd.message.author)
