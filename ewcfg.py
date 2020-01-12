@@ -1986,6 +1986,7 @@ item_id_moxiemegameal = "moxiemegameal"
 item_id_chutzpahcherrysoda = "chutzpahcherrysoda"
 item_id_gritgruel = "gritgruel"
 item_id_skittishbrainscrambler = "skittishbrainscrambler"
+item_id_rainbowhueshifter = "rainbowhueshifter"
 
 #vegetable ids
 item_id_poketubers = "poketubers"
@@ -2650,7 +2651,7 @@ item_list = [
 	EwSlimeoidHeldItem(
 		id_item = item_id_skittishbrainscrambler,
 		alias = [
-			"sbc"
+			"sbs"
 		],
 		str_name = "Skittish Brain Scrambler",
 		str_desc = "An item held by slimeoids. Gives your slimeoid a skittish and jumpy brain when hit for massive damage.",
@@ -2658,6 +2659,20 @@ item_list = [
 		price = 10000,
 		str_activate = "**{} activates its Skittish Brain Scrambler! It starts to spaz the heck out!**",
 		str_deactivate = "**{}'s Skittish Brain Scrambler breaks down. Its brain returns to normal.**",
+		turn_count = 3,
+		trigger_condition = "largedamage",
+	),
+	EwSlimeoidHeldItem(
+		id_item = item_id_rainbowhueshifter,
+		alias = [
+			"rhs"
+		],
+		str_name = "Rainbow Hue Shifter",
+		str_desc = "An item held by slimeoids. Gives your slimeoid a rainbow hue when hit for massive damage.",
+		vendors = [vendor_glocksburycomics],
+		price = 10000,
+		str_activate = "**{} activates its Rainbow Hue Shifter! It starts to sparkle and shine in all sorts of different colors!**",
+		str_deactivate = "**{}'s Rainbow Hue Shifter breaks down. Its color fades back to what it was before.**",
 		turn_count = 3,
 		trigger_condition = "largedamage",
 	),
@@ -14909,10 +14924,13 @@ zine_commands = [
 	cmd_setpages_alt_2,
 	]
 
-# slimeoid_held_item_ids = [ # used 
-# 	item_id_moxiemegameal,
-# 	item_id_chutzpahcherrysoda,
-# ]
+slimeoid_brainscrambler_held_item_ids = [ # used to see if a brain needs to be changed mid-battle
+	item_id_skittishbrainscrambler,
+]
+
+slimeoid_hueshifter_held_item_ids = [ # used to see if a hue needs to be changed mid-battle
+	item_id_rainbowhueshifter,
+]
 
 # lists of all the discord server objects served by bot, identified by the server id
 server_list = {}

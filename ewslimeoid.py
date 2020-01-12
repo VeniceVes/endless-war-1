@@ -739,8 +739,8 @@ class EwSlimeoidCombatData:
 		self.hardened_sap = 0
 		self.shock = 0
 		self.held_item = held_item
-		self.held_item_active = 0
-		self.item_active_turns = 0
+		self.held_item_active = held_item_active
+		self.item_active_turns = item_active_turns
 		self.slimeoid = slimeoid
 		self.owner = owner
 	
@@ -764,10 +764,11 @@ class EwSlimeoidCombatData:
 
 	# initializes the hue resistance and weakness strings and applies corresponding stat changes
 	def apply_hue_matchup(self, enemy_combat_data = None):
+		
 		color_matchup = ewcfg.hue_neutral
 		# get color matchups
 		if self.hue is not None:
-			color_matchup = self.hue.effectiveness.get(enemy_combat_data.slimeoid.hue)
+			color_matchup = self.hue.effectiveness.get(enemy_combat_data.hue.id_hue)
 
 		if color_matchup is None:
 			color_matchup = ewcfg.hue_neutral
@@ -786,6 +787,9 @@ class EwSlimeoidCombatData:
 			elif color_matchup == ewcfg.hue_full_complementary:
 				self.moxie += 2
 				self.chutzpah += 2
+
+				print("CHUTZPAH RAISED DUE TO WEAKNESS")
+				
 				enemy_combat_data.splitcomplementary_physical = "It's Super Effective against {}!".format(enemy_combat_data.name)
 				enemy_combat_data.splitcomplementary_special = "It's Super Effective against {}!".format(enemy_combat_data.name)
 
@@ -981,6 +985,26 @@ class EwSlimeoidCombatData:
 			response = "{} hardens {} sap!".format(self.name, sap_hardened)
 
 		return response
+	
+	# reset hue matchup when a hue shifts mid-battle
+	def reset_hue_matchup(self, enemy_combat_data):
+		
+		
+		if enemy_combat_data.analogous != "":
+			enemy_combat_data.grit -= 2
+			enemy_combat_data.analogous = ""
+			print("GRIT RESET")
+			
+		if enemy_combat_data.splitcomplementary_special != "":
+			self.chutzpah -= 2
+			enemy_combat_data.splitcomplementary_special = ""
+			print("CHUTZ RESET")
+
+		if enemy_combat_data.splitcomplementary_physical != "":
+			self.moxie -= 2
+			enemy_combat_data.splitcomplementary_physical = ""
+			print("MOX RESET")
+		
 
 """
 	Commands
@@ -2694,9 +2718,6 @@ async def battle_slimeoids(id_s1, id_s2, channel, battle_type):
 	s1_combat_data.apply_hue_matchup(s2_combat_data)
 	s2_combat_data.apply_hue_matchup(s1_combat_data)
 
-
-			
-
 	# decide which slimeoid gets to move first
 	s1_active = False
 	in_range = False
@@ -2750,20 +2771,25 @@ async def battle_slimeoids(id_s1, id_s2, channel, battle_type):
 			passive_data = s1_combat_data
 			
 		# apply item effects
-		await check_for_item_effects(s1_combat_data, client, channel)
-		await check_for_item_effects(s2_combat_data, client, channel)
+		await check_for_item_effects(s1_combat_data, s2_combat_data, client, channel)
+		await check_for_item_effects(s2_combat_data, s1_combat_data, client, channel)
 
 		if s1_combat_data.item_active_turns > 0:
 			s1_combat_data.item_active_turns -= 1
 		if s2_combat_data.item_active_turns > 0:
 			s2_combat_data.item_active_turns -= 1
 
-		print( "DEBUG S1 GRIT: {}".format(s1_combat_data.grit))
-		print( "DEBUG S1 HIA: {}".format(s1_combat_data.held_item_active))
-		print( "DEBUG S1 IAT: {}".format(s1_combat_data.item_active_turns))
-		print( "DEBUG S2 BRAIN: {}".format(s2_combat_data.brain))
-		print( "DEBUG S2 HIA: {}".format(s2_combat_data.held_item_active))
-		print( "DEBUG S2 IAT: {}".format(s2_combat_data.item_active_turns))
+		print("==================")
+		print("DEBUG S1 HUE: {}".format(s1_combat_data.hue.str_name))
+		print("DEBUG S1 CHUTZ: {}".format(s1_combat_data.chutzpah))
+		print("DEBUG S1 HIA: {}".format(s1_combat_data.held_item_active))
+		print("DEBUG S1 IAT: {}".format(s1_combat_data.item_active_turns))
+		print("==================")
+		print("DEBUG S2 HUE: {}".format(s2_combat_data.hue.str_name))
+		print("DEBUG S2 CHUTZ: {}".format(s2_combat_data.chutzpah))
+		print("DEBUG S2 HIA: {}".format(s2_combat_data.held_item_active))
+		print("DEBUG S2 IAT: {}".format(s2_combat_data.item_active_turns))
+		print("==================")
 
 
 		# obtain action and how much sap to spend on it for both slimeoids
@@ -3052,14 +3078,14 @@ async def battle_slimeoids(id_s1, id_s2, channel, battle_type):
 		await asyncio.sleep(2)
 	return result
 
-async def check_for_item_effects(combat_data, client, channel):
+async def check_for_item_effects(combat_data, enemy_combat_data, client, channel):
 	if combat_data.held_item != "":
 		item_response = ""
 
 		if combat_data.held_item_active == -1 and combat_data.item_active_turns == 0:
-			item_response = remove_item_effects(combat_data)
+			item_response = remove_item_effects(combat_data, enemy_combat_data)
 		elif combat_data.held_item_active == 1:
-			item_response = apply_item_effects(combat_data)
+			item_response = apply_item_effects(combat_data, enemy_combat_data)
 		else:
 			return
 
@@ -3069,7 +3095,7 @@ async def check_for_item_effects(combat_data, client, channel):
 		return
 
 
-def apply_item_effects(combat_data):
+def apply_item_effects(combat_data, enemy_combat_data):
 	response = ""
 	held_item_data = EwItem(id_item=combat_data.held_item)
 	held_item_data_props = held_item_data.item_props
@@ -3090,6 +3116,20 @@ def apply_item_effects(combat_data):
 	
 	elif held_item_type == ewcfg.item_id_skittishbrainscrambler:
 		combat_data.brain = ewcfg.brain_map.get("e")
+		print("BRAIN CHANGED TO TYPE E")
+		
+	elif held_item_type in ewcfg.slimeoid_hueshifter_held_item_ids:
+		
+		# reset boosts from hue type matchup, then reapply them
+		combat_data.reset_hue_matchup(enemy_combat_data)
+		enemy_combat_data.reset_hue_matchup(combat_data)
+		
+		if held_item_type == ewcfg.item_id_rainbowhueshifter:
+			combat_data.hue = ewcfg.hue_map.get("rainbow")
+			print("HUE CHANGED TO RAINBOW")
+			
+		combat_data.apply_hue_matchup(enemy_combat_data)
+		enemy_combat_data.apply_hue_matchup(combat_data)
 	
 	response = ("\n" + held_item_data_props['str_activate'].format(combat_data.name))
 
@@ -3097,7 +3137,7 @@ def apply_item_effects(combat_data):
 
 	return response
 
-def remove_item_effects(combat_data):
+def remove_item_effects(combat_data, enemy_combat_data):
 	response = ""
 	held_item_data = EwItem(id_item=combat_data.held_item)
 	held_item_data_props = held_item_data.item_props
@@ -3116,8 +3156,20 @@ def remove_item_effects(combat_data):
 		combat_data.grit -= 1
 		print("GRIT DECREASED")
 	
-	elif held_item_type == ewcfg.item_id_skittishbrainscrambler:
+	elif held_item_type in ewcfg.slimeoid_brainscrambler_held_item_ids:
 		combat_data.brain = ewcfg.brain_map.get(combat_data.slimeoid.ai)
+		print("BRAIN CHANGED BACK TO NORMAL")
+		
+	elif held_item_type in ewcfg.slimeoid_hueshifter_held_item_ids:
+		# reset boosts from hue type matchup, then reapply them
+		combat_data.reset_hue_matchup(enemy_combat_data)
+		enemy_combat_data.reset_hue_matchup(combat_data)
+		
+		combat_data.hue = ewcfg.hue_map.get(combat_data.slimeoid.hue)
+		print("HUE CHANGED BACK TO NORMAL")
+
+		combat_data.apply_hue_matchup(enemy_combat_data)
+		enemy_combat_data.apply_hue_matchup(combat_data)
 	
 	response = ("\n" + held_item_data_props['str_deactivate'].format(combat_data.name))
 	
