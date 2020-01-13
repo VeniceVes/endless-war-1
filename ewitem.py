@@ -1395,6 +1395,7 @@ def gen_item_props(item):
 			item_props["str_deactivate"] = item.str_deactivate
 			item_props["turn_count"] = item.turn_count
 			item_props["trigger_condition"] = item.trigger_condition
+			item_props["subcontext"] = item.subcontext
 
 	elif item.item_type == ewcfg.it_weapon:
 		captcha = ""

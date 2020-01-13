@@ -1937,6 +1937,7 @@ item_id_munchywrappingpaper = "munchywrappingpaper"
 item_id_benwrappingpaper = "benwrappingpaper"
 item_id_gellphone = "gellphone"
 item_id_royaltypoudrin = "royaltypoudrin"
+item_id_maxrevive = "maxrevive"
 
 item_id_faggot = "faggot"
 item_id_doublefaggot = "doublefaggot"
@@ -1985,8 +1986,47 @@ item_id_insidiouscandy = "insidiouscandy" #+chutzpah -moxie
 item_id_moxiemegameal = "moxiemegameal"
 item_id_chutzpahcherrysoda = "chutzpahcherrysoda"
 item_id_gritgruel = "gritgruel"
+item_id_portablerefrigerator = "portablerefrigerator"
+item_id_anarchistsrefrigerator = "anarchistsrefrigerator"
+item_id_luckyclover = "luckyclover"
+item_id_warhorn = "warhorn"
+item_id_plantb = "plantb"
+item_id_policeradio = "policeradio"
+item_id_highfructoseslimesyrup = "highfructoseslimesyrup"
+item_id_staydeadshalo = "staydeadshalo"
+item_id_berserkergene = "berserkergene"
+item_id_elephantsfoot = "elephantsfoot"
+
+
+item_id_irritablebrainscrambler = "irritablebrainscrambler"
+item_id_enthusiasticbrainscrambler = "enthusiasticbrainscrambler"
+item_id_withdrawnbrainscrambler = "withdrawnbrainscrambler"
+item_id_scatteredbrainscrambler = "scatteredbrainscrambler"
 item_id_skittishbrainscrambler = "skittishbrainscrambler"
+item_id_secretivebrainscrambler = "secretivebrainscrambler"
+item_id_perplexedbrainscrambler = "perplexedbrainscrambler"
+
+# ['white', 'yellow', 'orange', 'red', 'magenta', 'purple', 'blue', 'green', 'teal', 'rainbow', 'pink', 'grey', 'cobalt', 'black', 'lime', 'cyan']
+
+item_id_whitehueshifter = "whitehueshifter"
+item_id_yellowhueshifter = "yellowhueshifter"
+item_id_orangehueshifter = "orangehueshifter"
+item_id_redhueshifter = "redhueshifter"
+item_id_magentahueshifter = "magentahueshifter"
+item_id_purplehueshifter = "purplehueshifter"
+item_id_bluehueshifter = "bluehueshifter"
+item_id_greenhueshifter = "greenhueshifter"
+item_id_tealhueshifter = "tealhueshifter"
 item_id_rainbowhueshifter = "rainbowhueshifter"
+item_id_pinkhueshifter = "pinkhueshifter"
+item_id_greyhueshifter = "greyhueshifter"
+item_id_cobalthueshifter = "cobalthueshifter"
+item_id_blackhueshifter = "blackhueshifter"
+item_id_limehueshifter = "limehueshifter"
+item_id_cyanhueshifter = "cyanhueshifter"
+
+
+
 
 #vegetable ids
 item_id_poketubers = "poketubers"
@@ -2606,13 +2646,14 @@ item_list = [
 		increase = slimeoid_stat_moxie,
 		decrease = slimeoid_stat_chutzpah,
 	),
+	# Stat boosters
 	EwSlimeoidHeldItem(
 		id_item = item_id_moxiemegameal,
 		alias = [
 			"mmm"
 		],
 		str_name = "Moxie Mega Meal",
-		str_desc = "An item held by slimeoids. Increases moxie by 1 when your slimeoid gets hit for massive damage.",
+		str_desc = "An item to be held by slimeoids. Has a chance to increase moxie by 1.",
 		vendors = [vendor_glocksburycomics],
 		price = 10000,
 		str_activate = "**{} chews on its Moxie Mega Meal! Its moxie goes up by 1!**",
@@ -2626,7 +2667,7 @@ item_list = [
 			"ccs"
 		],
 		str_name = "Chutzpah Cherry Soda",
-		str_desc = "An item held by slimeoids. Increases chutzpah by 1 when your slimeoid gets hit for massive damage.",
+		str_desc = "An item to be held by slimeoids. Has a chance to increase chutzpah by 1.",
 		vendors = [vendor_glocksburycomics],
 		price = 10000,
 		str_activate = "**{} slurps up its Chutzpah Cherry Soda! Its chutzpah goes up by 1!**",
@@ -2640,41 +2681,142 @@ item_list = [
 			"grgr"
 		],
 		str_name = "Grit Gruel",
-		str_desc = "An item held by slimeoids. Increases grit by 1 when your slimeoid gets hit for massive damage.",
+		str_desc = "An item to be held by slimeoids. Has a chance to increase grit by 1.",
 		vendors = [vendor_glocksburycomics],
 		price = 10000,
 		str_activate = "**{} heartily enjoys its Grit Gruel! Its grit goes up by 1!**",
 		str_deactivate = "**{} has fully digested its Grit Gruel. Its grit returns to normal.**",
-		turn_count = 3,
+		turn_count = 10,
 		trigger_condition = "uncommondamage",
 	),
+	# Brain scramblers
 	EwSlimeoidHeldItem(
-		id_item = item_id_skittishbrainscrambler,
+		id_item = item_id_irritablebrainscrambler,
 		alias = [
-			"sbs"
+			"ibs",
+			"irritable",
 		],
-		str_name = "Skittish Brain Scrambler",
-		str_desc = "An item held by slimeoids. Gives your slimeoid a skittish and jumpy brain when hit for massive damage.",
+		str_name = "Irritable Brain Scrambler",
+		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid an extremely irritable brain.",
 		vendors = [vendor_glocksburycomics],
 		price = 10000,
-		str_activate = "**{} activates its Skittish Brain Scrambler! It starts to spaz the heck out!**",
-		str_deactivate = "**{}'s Skittish Brain Scrambler breaks down. Its brain returns to normal.**",
-		turn_count = 3,
+		str_activate = "**{} activates its Irritable Brain Scrambler! Its expression turns into a vicious scowl!**",
+		str_deactivate = "**{}'s Irritable Brain Scrambler breaks down. Its brain returns to normal.**",
+		turn_count = 20,
 		trigger_condition = "uncommondamage",
+		subcontext = "a",
 	),
+	EwSlimeoidHeldItem(
+		id_item = item_id_enthusiasticbrainscrambler,
+		alias = [
+			"ebs",
+			"enthusiastic",
+		],
+		str_name = "Enthusiastic Brain Scrambler",
+		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid an enthusiastic brain.",
+		vendors = [vendor_glocksburycomics],
+		price = 10000,
+		str_activate = "**{} activates its Enthusiastic Brain Scrambler! It starts to focus intensely on the enemy slimeoid!**",
+		str_deactivate = "**{}'s Enthusiastic Brain Scrambler breaks down. Its brain returns to normal.**",
+		turn_count = 20,
+		trigger_condition = "uncommondamage",
+		subcontext = "b",
+	),
+	EwSlimeoidHeldItem(
+		id_item = item_id_withdrawnbrainscrambler,
+		alias = [
+			"wbs",
+			"withdrawn",
+		],
+		str_name = "Withdrawn Brain Scrambler",
+		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a quiet and withdrawn brain.",
+		vendors = [vendor_glocksburycomics],
+		price = 10000,
+		str_activate = "**{} activates its Withdrawn Brain Scrambler! Its expression turns deadpanned!**",
+		str_deactivate = "**{}'s Withdrawn Brain Scrambler breaks down. Its brain returns to normal.**",
+		turn_count = 20,
+		trigger_condition = "uncommondamage",
+		subcontext = "c",
+	),
+	EwSlimeoidHeldItem(
+		id_item = item_id_scatteredbrainscrambler,
+		alias = [
+			"scbs",
+			"scattered",
+		],
+		str_name = "Scattered Brain Scrambler",
+		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a scattered brain.",
+		vendors = [vendor_glocksburycomics],
+		price = 10000,
+		str_activate = "**{} activates its Scattered Brain Scrambler! Its entire body freezes in place!**",
+		str_deactivate = "**{}'s Scattered Brain Scrambler breaks down. Its brain returns to normal.**",
+		turn_count = 20,
+		trigger_condition = "uncommondamage",
+		subcontext = "d",
+	),
+	EwSlimeoidHeldItem(
+		id_item=item_id_skittishbrainscrambler,
+		alias=[
+			"skbs",
+			"skittish",
+		],
+		str_name="Skittish Brain Scrambler",
+		str_desc="An item to be held by slimeoids. Has a chance to give your slimeoid skittish and jumpy brain.",
+		vendors=[vendor_glocksburycomics],
+		price=10000,
+		str_activate="**{} activates its Skittish Brain Scrambler! It starts to spaz the heck out!**",
+		str_deactivate="**{}'s Skittish Brain Scrambler breaks down. Its brain returns to normal.**",
+		turn_count=20,
+		trigger_condition="uncommondamage",
+		subcontext = "e",
+	),
+	EwSlimeoidHeldItem(
+		id_item = item_id_secretivebrainscrambler,
+		alias = [
+			"sebs",
+			"secretive",
+		],
+		str_name = "Secretive Brain Scrambler",
+		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a secretive and cunning brain.",
+		vendors = [vendor_glocksburycomics],
+		price = 10000,
+		str_activate = "**{} activates its Secretive Brain Scrambler! It begins to chuckle to itself!**",
+		str_deactivate = "**{}'s Secretive Brain Scrambler breaks down. Its brain returns to normal.**",
+		turn_count = 20,
+		trigger_condition = "uncommondamage",
+		subcontext = "f",
+	),
+	EwSlimeoidHeldItem(
+		id_item = item_id_perplexedbrainscrambler,
+		alias = [
+			"pebs",
+			"perplexed",
+		],
+		str_name = "Perplexed Brain Scrambler",
+		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a confused and inquisitive brain.",
+		vendors = [vendor_glocksburycomics],
+		price = 10000,
+		str_activate = "**{} activates its Perplexed Brain Scrambler! It starts to wander around aimlessly!**",
+		str_deactivate = "**{}'s Perplexed Brain Scrambler breaks down. Its brain returns to normal.**",
+		turn_count = 20,
+		trigger_condition = "uncommondamage",
+		subcontext = "g",
+	),
+	# Hue shifters
 	EwSlimeoidHeldItem(
 		id_item = item_id_rainbowhueshifter,
 		alias = [
 			"rhs"
 		],
 		str_name = "Rainbow Hue Shifter",
-		str_desc = "An item held by slimeoids. Gives your slimeoid a rainbow hue when hit for massive damage.",
+		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a rainbow hue.",
 		vendors = [vendor_glocksburycomics],
 		price = 10000,
 		str_activate = "**{} activates its Rainbow Hue Shifter! It starts to sparkle and shine in all sorts of different colors!**",
 		str_deactivate = "**{}'s Rainbow Hue Shifter breaks down. Its color fades back to what it was before.**",
-		turn_count = 3,
+		turn_count = 10,
 		trigger_condition = "uncommondamage",
+		subcontext = "rainbow",
 	),
 ]
 item_list += ewdebug.debugitem_set
@@ -13402,6 +13544,7 @@ for hue in hue_list:
 
 	for alias in hue.alias:
 		hue_map[alias] = hue# A map of id_hue to EwHue objects.
+		
 
 # Things a slimeoid might throw
 thrownobjects_list = [
@@ -14925,7 +15068,13 @@ zine_commands = [
 	]
 
 slimeoid_brainscrambler_held_item_ids = [ # used to see if a brain needs to be changed mid-battle
+	item_id_irritablebrainscrambler,
+	item_id_enthusiasticbrainscrambler,
+	item_id_withdrawnbrainscrambler,
+	item_id_scatteredbrainscrambler,
 	item_id_skittishbrainscrambler,
+	item_id_secretivebrainscrambler,
+	item_id_perplexedbrainscrambler
 ]
 
 slimeoid_hueshifter_held_item_ids = [ # used to see if a hue needs to be changed mid-battle

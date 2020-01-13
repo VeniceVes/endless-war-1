@@ -589,6 +589,7 @@ class EwSlimeoidHeldItem:
 	str_deactivate = ""
 	turn_count = 0
 	trigger_condition = ""
+	subcontext = ""
 
 	def __init__(
 		self,
@@ -604,6 +605,7 @@ class EwSlimeoidHeldItem:
 		str_deactivate = "",
 		turn_count = 0,
 		trigger_condition = "",
+		subcontext = "",
 	):
 		self.item_type = ewcfg.it_item
 		self.id_item = id_item
@@ -619,6 +621,7 @@ class EwSlimeoidHeldItem:
 		self.str_deactivate = str_deactivate
 		self.turn_count = turn_count
 		self.trigger_condition = trigger_condition
+		self.subcontext = subcontext
 
 # manages a slimeoid's combat stats during a slimeoid battle
 class EwSlimeoidCombatData:
@@ -787,8 +790,6 @@ class EwSlimeoidCombatData:
 			elif color_matchup == ewcfg.hue_full_complementary:
 				self.moxie += 2
 				self.chutzpah += 2
-
-				print("CHUTZPAH RAISED DUE TO WEAKNESS")
 				
 				enemy_combat_data.splitcomplementary_physical = "It's Super Effective against {}!".format(enemy_combat_data.name)
 				enemy_combat_data.splitcomplementary_special = "It's Super Effective against {}!".format(enemy_combat_data.name)
@@ -2773,12 +2774,18 @@ async def battle_slimeoids(id_s1, id_s2, channel, battle_type):
 
 		print("==================")
 		print("DEBUG S1 HUE: {}".format(s1_combat_data.hue.str_name))
+		print("DEBUG S1 BRAIN: {}".format(s1_combat_data.brain.id_brain))
+		print("DEBUG S1 MOXIE: {}".format(s1_combat_data.moxie))
 		print("DEBUG S1 CHUTZ: {}".format(s1_combat_data.chutzpah))
+		print("DEBUG S1 GRIT: {}".format(s1_combat_data.grit))
 		print("DEBUG S1 HIA: {}".format(s1_combat_data.held_item_active))
 		print("DEBUG S1 IAT: {}".format(s1_combat_data.item_active_turns))
 		print("==================")
 		print("DEBUG S2 HUE: {}".format(s2_combat_data.hue.str_name))
+		print("DEBUG S2 BRAIN: {}".format(s2_combat_data.brain.id_brain))
+		print("DEBUG S2 MOXIE: {}".format(s2_combat_data.moxie))
 		print("DEBUG S2 CHUTZ: {}".format(s2_combat_data.chutzpah))
+		print("DEBUG S2 GRIT: {}".format(s2_combat_data.grit))
 		print("DEBUG S2 HIA: {}".format(s2_combat_data.held_item_active))
 		print("DEBUG S2 IAT: {}".format(s2_combat_data.item_active_turns))
 		print("==================")
@@ -3095,9 +3102,9 @@ def calc_item_activation(combat_data, hp, damage):
 			if damage == 0:
 				mode = 5.5  # midpoint is used if no damage occurs that turn
 			else:
-				mode = ((5.5 + (hp/damage)) / 5.5)  # skew the odds below the midpoint based on how much damage was taken
-				if mode > 5.5:  # if the mode is too high then bring it down to the midpoint
-					mode = 5.5
+				# skew the odds below the midpoint based on how much damage was taken.
+				# if the mode is too high then bring it down to the midpoint.
+				mode = ((4.5 + (hp/damage)) / 5.5) if (mode < 5.5) else 5.5
 		
 			if trigger_condition == 'uncommondamage':
 				if int(random.triangular(1, 10, mode)) <= 2:
@@ -3135,29 +3142,25 @@ def apply_item_effects(combat_data, enemy_combat_data):
 
 	if held_item_type == ewcfg.item_id_moxiemegameal:
 		combat_data.moxie += 1
-		print("MOXIE INCREASED")
 
 	elif held_item_type == ewcfg.item_id_chutzpahcherrysoda:
 		combat_data.chutzpah += 1
-		print("CHUTZPAH INCREASED")
 
 	elif held_item_type == ewcfg.item_id_gritgruel:
 		combat_data.grit += 1
-		print("GRIT INCREASED")
 	
-	elif held_item_type == ewcfg.item_id_skittishbrainscrambler:
-		combat_data.brain = ewcfg.brain_map.get("e")
-		print("BRAIN CHANGED TO TYPE E")
+	elif held_item_type in ewcfg.slimeoid_brainscrambler_held_item_ids:
+		new_brain_type = held_item_data_props.get("subcontext")
+		combat_data.brain = ewcfg.brain_map.get(new_brain_type)
 		
 	elif held_item_type in ewcfg.slimeoid_hueshifter_held_item_ids:
+		new_hue_color = held_item_data_props.get("subcontext")
 		
 		# reset boosts from hue type matchup, then reapply them
 		combat_data.reset_hue_matchup(enemy_combat_data)
 		enemy_combat_data.reset_hue_matchup(combat_data)
 		
-		if held_item_type == ewcfg.item_id_rainbowhueshifter:
-			combat_data.hue = ewcfg.hue_map.get("rainbow")
-			print("HUE CHANGED TO RAINBOW")
+		combat_data.hue = ewcfg.hue_map.get(new_hue_color)
 			
 		combat_data.apply_hue_matchup(enemy_combat_data)
 		enemy_combat_data.apply_hue_matchup(combat_data)
