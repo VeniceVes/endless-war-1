@@ -930,19 +930,7 @@ class EwSlimeoidCombatData:
 
 			if sap_crush > 0:
 				response += " (-{} hardened sap)".format(sap_crush)
-				
-			print("DAMAGE: {}".format(damage))
-
-			if hp/damage < 8  and self.slimeoid.held_item != "" and self.held_item_active != -1:
-				held_item_data = EwItem(id_item=self.slimeoid.held_item)
-				held_item_data_props = held_item_data.item_props
-				
-				if held_item_data_props['trigger_condition'] == 'largedamage':
-					self.held_item_active = 1
-					self.item_active_turns = int(held_item_data_props['turn_count'])
-					
-					print(int(held_item_data_props['turn_count']))
-						
+							
 		return response
 
 	# obtain movement response
@@ -2770,6 +2758,10 @@ async def battle_slimeoids(id_s1, id_s2, channel, battle_type):
 			active_data = s2_combat_data
 			passive_data = s1_combat_data
 			
+		# track attack and passive slimeoid damage to skew randomness for item activation at the end of a turn
+		active_damage = 0
+		passive_damage = 0
+			
 		# apply item effects
 		await check_for_item_effects(s1_combat_data, s2_combat_data, client, channel)
 		await check_for_item_effects(s2_combat_data, s1_combat_data, client, channel)
@@ -2910,6 +2902,7 @@ async def battle_slimeoids(id_s1, id_s2, channel, battle_type):
 				await asyncio.sleep(1)
 
 				response = passive_data.take_damage(active_data, damage, active_dos, in_range)
+				passive_damage = damage
 				if len(response) > 0:
 					await ewutils.send_message(client, channel, response)
 					await asyncio.sleep(1)
@@ -2956,6 +2949,7 @@ async def battle_slimeoids(id_s1, id_s2, channel, battle_type):
 				await asyncio.sleep(1)
 
 				response = active_data.take_damage(passive_data, damage, passive_dos, in_range)
+				active_damage = damage
 				if len(response) > 0:
 					await ewutils.send_message(client, channel, response)
 					await asyncio.sleep(1)
@@ -3007,7 +3001,15 @@ async def battle_slimeoids(id_s1, id_s2, channel, battle_type):
 				response = passive_data.harden_sap(passive_dos)
 				await ewutils.send_message(client, channel, response)
 				await asyncio.sleep(1)
-
+		
+		if active_damage > 0:
+			print("ACTIVE DAMAGE RATIO: {}".format(active_data.hp/active_damage))
+		if passive_damage > 0:
+			print("PASSIVE DAMAGE RATIO: {}".format(passive_data.hp/passive_damage))
+				
+		# have a chance to activate the held item of a slimeoid
+		calc_item_activation(active_data, active_data.hp, active_damage)
+		calc_item_activation(passive_data, passive_data.hp, passive_damage)
 
 		# re-fetch slimeoid data
 		challenger_slimeoid = EwSlimeoid(id_slimeoid = id_s2)
@@ -3077,6 +3079,35 @@ async def battle_slimeoids(id_s1, id_s2, channel, battle_type):
 		await ewutils.send_message(client, channel, response)
 		await asyncio.sleep(2)
 	return result
+
+def calc_item_activation(combat_data, hp, damage):
+	if combat_data.slimeoid.held_item != "" and combat_data.held_item_active != -1:
+		held_item_data = EwItem(id_item=combat_data.slimeoid.held_item)
+		held_item_data_props = held_item_data.item_props
+		trigger_condition = held_item_data_props['trigger_condition']
+		
+		mode = 0
+		has_triggered = False
+		
+		print("CALC IN PROGRESS")
+		
+		if trigger_condition == 'uncommondamage' or trigger_condition == 'raredamage':
+			if damage == 0:
+				mode = 5.5  # midpoint is used if no damage occurs that turn
+			else:
+				mode = ((5.5 + (hp/damage)) / 5.5)  # skew the odds below the midpoint based on how much damage was taken
+				if mode > 5.5:  # if the mode is too high then bring it down to the midpoint
+					mode = 5.5
+		
+			if trigger_condition == 'uncommondamage':
+				if int(random.triangular(1, 10, mode)) <= 2:
+					combat_data.held_item_active = 1
+					combat_data.item_active_turns = int(held_item_data_props['turn_count'])
+			elif trigger_condition == 'raredamage':
+				if int(random.triangular(1, 10, mode)) == 1:
+					combat_data.held_item_active = 1
+					combat_data.item_active_turns = int(held_item_data_props['turn_count'])
+				
 
 async def check_for_item_effects(combat_data, enemy_combat_data, client, channel):
 	if combat_data.held_item != "":

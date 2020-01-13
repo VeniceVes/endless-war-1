@@ -2618,7 +2618,7 @@ item_list = [
 		str_activate = "**{} chews on its Moxie Mega Meal! Its moxie goes up by 1!**",
 		str_deactivate = "**{} has fully digested its Moxie Mega Meal. Its moxie returns to normal.**",
 		turn_count = 10,
-		trigger_condition = "largedamage",
+		trigger_condition = "uncommondamage",
 	),
 	EwSlimeoidHeldItem(
 		id_item = item_id_chutzpahcherrysoda,
@@ -2632,7 +2632,7 @@ item_list = [
 		str_activate = "**{} slurps up its Chutzpah Cherry Soda! Its chutzpah goes up by 1!**",
 		str_deactivate = "**{} has fully digested its Chutzpah Cherry Soda. Its chutzpah returns to normal.**",
 		turn_count = 10,
-		trigger_condition = "largedamage",
+		trigger_condition = "uncommondamage",
 	),
 	EwSlimeoidHeldItem(
 		id_item = item_id_gritgruel,
@@ -2646,7 +2646,7 @@ item_list = [
 		str_activate = "**{} heartily enjoys its Grit Gruel! Its grit goes up by 1!**",
 		str_deactivate = "**{} has fully digested its Grit Gruel. Its grit returns to normal.**",
 		turn_count = 3,
-		trigger_condition = "largedamage",
+		trigger_condition = "uncommondamage",
 	),
 	EwSlimeoidHeldItem(
 		id_item = item_id_skittishbrainscrambler,
@@ -2660,7 +2660,7 @@ item_list = [
 		str_activate = "**{} activates its Skittish Brain Scrambler! It starts to spaz the heck out!**",
 		str_deactivate = "**{}'s Skittish Brain Scrambler breaks down. Its brain returns to normal.**",
 		turn_count = 3,
-		trigger_condition = "largedamage",
+		trigger_condition = "uncommondamage",
 	),
 	EwSlimeoidHeldItem(
 		id_item = item_id_rainbowhueshifter,
@@ -2674,7 +2674,7 @@ item_list = [
 		str_activate = "**{} activates its Rainbow Hue Shifter! It starts to sparkle and shine in all sorts of different colors!**",
 		str_deactivate = "**{}'s Rainbow Hue Shifter breaks down. Its color fades back to what it was before.**",
 		turn_count = 3,
-		trigger_condition = "largedamage",
+		trigger_condition = "uncommondamage",
 	),
 ]
 item_list += ewdebug.debugitem_set
