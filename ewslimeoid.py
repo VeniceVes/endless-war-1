@@ -2557,6 +2557,9 @@ async def saturateslimeoid(cmd):
 	elif slimeoid.life_state == ewcfg.slimeoid_state_forming:
 		response = "Your Slimeoid is not yet ready. Use !spawnslimeoid to complete incubation."
 
+	elif active_slimeoidbattles.get(slimeoid.id_slimeoid):
+		response = "You can't do that right now."
+	
 	elif item_sought:
 		value = item_search
 		hue = ewcfg.hue_map.get(value)
