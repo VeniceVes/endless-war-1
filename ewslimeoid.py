@@ -271,6 +271,10 @@ class EwSlimeoid:
 			return resp_cont
 
 	def eat(self, food_item):
+		if food_item.item_props.get('id_item') == ewcfg.item_id_maxrevive:
+			self.time_defeated = 0
+			return True
+		
 		if food_item.item_props.get('context') != ewcfg.context_slimeoidfood:
 			return False
 		
@@ -582,8 +586,8 @@ class EwSlimeoidHeldItem:
 	str_desc = ""
 	ingredients = ""
 	acquisition = ""
-	price = 0
-	vendors = []
+	price = 0 # cost of item in clout
+	vendors = [] # places where you can trade in clout for held items
 
 	str_activate = ""
 	str_deactivate = ""
@@ -680,8 +684,11 @@ class EwSlimeoidCombatData:
 	# held item activation state (-1 = used up, 0 = unactivated, 1 = currently activated)
 	held_item_active = 0
 	
-	# held item turn count (-2 = always active, -1 = fully deactivated, 0 = about to be deactivated, any other number is indicative of how many turns it has left to be used)
+	# held item turn count (-1 = fully deactivated, 0 = about to be deactivated, any other number is indicative of how many turns it has left to be used)
 	item_active_turns = 0
+	
+	# a status in the battle caused by a held item
+	held_item_status = ""
 
 	# slimeoid database object (EwSlimeoid)
 	slimeoid = None
@@ -722,6 +729,7 @@ class EwSlimeoidCombatData:
 		held_item = "",
 		held_item_active = 0,
 		item_active_turns = 0,
+		held_item_status="",
 		slimeoid = None,
 		owner = None
 	):
@@ -744,6 +752,7 @@ class EwSlimeoidCombatData:
 		self.held_item = held_item
 		self.held_item_active = held_item_active
 		self.item_active_turns = item_active_turns
+		self.held_item_status = held_item_status
 		self.slimeoid = slimeoid
 		self.owner = owner
 	
@@ -2783,6 +2792,7 @@ async def battle_slimeoids(id_s1, id_s2, channel, battle_type):
 		print("DEBUG S1 GRIT: {}".format(s1_combat_data.grit))
 		print("DEBUG S1 HIA: {}".format(s1_combat_data.held_item_active))
 		print("DEBUG S1 IAT: {}".format(s1_combat_data.item_active_turns))
+		print("DEBUG S1 STATUS: {}".format(s1_combat_data.held_item_status))
 		print("==================")
 		print("DEBUG S2 HUE: {}".format(s2_combat_data.hue.str_name))
 		print("DEBUG S2 BRAIN: {}".format(s2_combat_data.brain.id_brain))
@@ -2791,6 +2801,7 @@ async def battle_slimeoids(id_s1, id_s2, channel, battle_type):
 		print("DEBUG S2 GRIT: {}".format(s2_combat_data.grit))
 		print("DEBUG S2 HIA: {}".format(s2_combat_data.held_item_active))
 		print("DEBUG S2 IAT: {}".format(s2_combat_data.item_active_turns))
+		print("DEBUG S2 STATUS: {}".format(s2_combat_data.held_item_status))
 		print("==================")
 
 
@@ -3101,7 +3112,7 @@ def calc_item_activation(combat_data, hp, damage):
 		
 		print("CALC IN PROGRESS")
 		
-		if trigger_condition == 'uncommondamage' or trigger_condition == 'raredamage':
+		if trigger_condition == ewcfg.trigger_uncommondamage or trigger_condition == ewcfg.trigger_raredamage:
 			if damage == 0:
 				mode = 5.5  # midpoint is used if no damage occurs that turn
 			else:
@@ -3109,11 +3120,11 @@ def calc_item_activation(combat_data, hp, damage):
 				# if the mode is too high then bring it down to the midpoint.
 				mode = ((4.5 + (hp/damage)) / 5.5) if (mode < 5.5) else 5.5
 		
-			if trigger_condition == 'uncommondamage':
+			if trigger_condition == ewcfg.trigger_uncommondamage:
 				if int(random.triangular(1, 10, mode)) <= 2:
 					combat_data.held_item_active = 1
 					combat_data.item_active_turns = int(held_item_data_props['turn_count'])
-			elif trigger_condition == 'raredamage':
+			elif trigger_condition == ewcfg.trigger_raredamage:
 				if int(random.triangular(1, 10, mode)) == 1:
 					combat_data.held_item_active = 1
 					combat_data.item_active_turns = int(held_item_data_props['turn_count'])
@@ -3141,6 +3152,9 @@ def apply_item_effects(combat_data, enemy_combat_data):
 	held_item_data = EwItem(id_item=combat_data.held_item)
 	held_item_data_props = held_item_data.item_props
 	
+	statchoice = 0
+	stat = ""
+	
 	held_item_type = held_item_data.item_props.get("id_item")
 
 	if held_item_type == ewcfg.item_id_moxiemegameal:
@@ -3149,8 +3163,37 @@ def apply_item_effects(combat_data, enemy_combat_data):
 	elif held_item_type == ewcfg.item_id_chutzpahcherrysoda:
 		combat_data.chutzpah += 1
 
-	elif held_item_type == ewcfg.item_id_gritgruel:
+	elif held_item_type == ewcfg.item_id_gritgrits:
 		combat_data.grit += 1
+		
+	elif held_item_type == ewcfg.item_id_luckyclover:
+		combat_data.held_item_status = "lucky" #TODO: make it give better sap rolls, cut floor of sap rolls at the midpoint
+	
+	elif held_item_type == ewcfg.item_id_warhorn:
+		combat_data.moxie += 1
+		combat_data.chutzpah += 1
+		
+	elif held_item_type == ewcfg.item_id_plantb:
+		statchoice = random.randint(1,3)
+		if statchoice == 1:
+			stat = "Moxie"
+			combat_data.moxie += 2
+			combat_data.held_item_status = "moxieincrease_plantb"
+		elif statchoice == 2:
+			stat = "Grit"
+			combat_data.grit += 2
+			combat_data.held_item_status = "gritincrease_plantb"
+		elif statchoice == 3:
+			stat = "Chutzpah"
+			combat_data.chutzpah += 2
+			combat_data.held_item_status = "chutzpahincrease_plantb"
+			
+	elif held_item_type == ewcfg.item_id_elephantsfoot:
+		combat_data.name = "**Mega** {}".format(combat_data.name)
+		combat_data.moxie += 1
+		combat_data.grit += 1
+		combat_data.chutzpah += 1
+		combat_data.hardened_sap += 1
 	
 	elif held_item_type in ewcfg.slimeoid_brainscrambler_held_item_ids:
 		new_brain_type = held_item_data_props.get("subcontext")
@@ -3167,10 +3210,38 @@ def apply_item_effects(combat_data, enemy_combat_data):
 			
 		combat_data.apply_hue_matchup(enemy_combat_data)
 		enemy_combat_data.apply_hue_matchup(combat_data)
-	
-	response = ("\n" + held_item_data_props['str_activate'].format(combat_data.name))
 
-	combat_data.held_item_active = -1  # item gets used up
+	# items that don't deactivate, immediately get a turn count of -1
+	elif held_item_type == ewcfg.item_id_portablerefrigerator:
+		combat_data.hardened_sap += 2
+
+	elif held_item_type == ewcfg.item_id_anarchistsrefrigerator:
+		combat_data.hardened_sap += 10
+
+	elif held_item_type == ewcfg.item_id_policeradio:
+		owner_data = EwUser(id_user=combat_data.owner.id_user)
+		owner_data.time_expirpvp = ewutils.calculatePvpTimer(owner_data.time_expirpvp, (int(time.time()) + ewcfg.time_pvp_policeradio))
+		owner_data.persist()
+		
+	elif held_item_type == ewcfg.item_id_highfructoseslimesyrup:
+		combat_data.hp += int(combat_data.hpmax * 0.2)
+		
+	elif held_item_type == ewcfg.item_id_staydeadshalo:
+		combat_data.hp = 1
+		enemy_combat_data.hp = max(1, int(enemy_combat_data.hp * 0.75))
+		
+	elif held_item_type == ewcfg.item_id_berserkergene:
+		combat_data.held_item_status = "berserker" #TODO: make it do 30% more damage but you lose 10% health
+
+	response = ("\n" + held_item_data_props['str_activate'].format(combat_data.name))
+	
+	if statchoice > 0:
+		response += " **It's {} was increased by 2!**".format(stat)
+
+	if held_item_type in ewcfg.slimeoid_reusable_held_item_ids:
+		combat_data.held_item_active = 0 # item activation gets set back to neutral state
+	else:
+		combat_data.held_item_active = -1  # item gets used up
 
 	return response
 
@@ -3180,22 +3251,45 @@ def remove_item_effects(combat_data, enemy_combat_data):
 	held_item_data_props = held_item_data.item_props
 
 	held_item_type = held_item_data.item_props.get("id_item")
+	
+	stat = ""
 
 	if held_item_type == ewcfg.item_id_moxiemegameal:
 		combat_data.moxie -= 1
-		print("MOXIE DECREASED")
 
 	elif held_item_type == ewcfg.item_id_chutzpahcherrysoda:
 		combat_data.chutzpah -= 1
-		print("CHUTZPAH DECREASED")
 		
-	elif held_item_type == ewcfg.item_id_gritgruel:
+	elif held_item_type == ewcfg.item_id_gritgrits:
 		combat_data.grit -= 1
-		print("GRIT DECREASED")
+
+	elif held_item_type == ewcfg.item_id_luckyclover:
+		combat_data.held_item_status = ""
+
+	elif held_item_type == ewcfg.item_id_warhorn:
+		combat_data.moxie -= 1
+		combat_data.chutzpah -= 1
+
+	elif held_item_type == ewcfg.item_id_plantb:
+		if combat_data.held_item_status == "moxieincrease_plantb":
+			stat = "Moxie"
+			combat_data.moxie -= 2
+		elif combat_data.held_item_status == "gritincrease_plantb":
+			stat = "Grit"
+			combat_data.grit -= 2
+		elif combat_data.held_item_status == "chutzpahincrease_plantb":
+			stat = "Chutzpah"
+			combat_data.chutzpah -= 2
+
+	elif held_item_type == ewcfg.item_id_elephantsfoot:
+		combat_data.name = combat_data.slimeoid.name
+		combat_data.moxie -= 1
+		combat_data.grit -= 1
+		combat_data.chutzpah -= 1
+		# Don't bother lowering its hsap back down
 	
 	elif held_item_type in ewcfg.slimeoid_brainscrambler_held_item_ids:
 		combat_data.brain = ewcfg.brain_map.get(combat_data.slimeoid.ai)
-		print("BRAIN CHANGED BACK TO NORMAL")
 		
 	elif held_item_type in ewcfg.slimeoid_hueshifter_held_item_ids:
 		# reset boosts from hue type matchup, then reapply them
@@ -3203,12 +3297,13 @@ def remove_item_effects(combat_data, enemy_combat_data):
 		enemy_combat_data.reset_hue_matchup(combat_data)
 		
 		combat_data.hue = ewcfg.hue_map.get(combat_data.slimeoid.hue)
-		print("HUE CHANGED BACK TO NORMAL")
 
 		combat_data.apply_hue_matchup(enemy_combat_data)
 		enemy_combat_data.apply_hue_matchup(combat_data)
 	
 	response = ("\n" + held_item_data_props['str_deactivate'].format(combat_data.name))
+	if stat != "":
+		response += " **It's {} went back down.**".format(stat)
 	
 	combat_data.item_active_turns = -1
 

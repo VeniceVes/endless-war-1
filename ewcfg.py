@@ -1192,7 +1192,7 @@ cd_boombust = 22
 #For possible time limit on russian roulette
 cd_rr = 600
 #slimeoid downtime after a defeat
-cd_slimeoiddefeated = 5
+cd_slimeoiddefeated = 300
 cd_scavenge = 0
 soft_cd_scavenge = 15 # Soft cooldown on scavenging
 cd_enlist = 60
@@ -1208,6 +1208,7 @@ time_pvp_farm = 10 * 60
 time_pvp_spar = 5 * 60
 time_pvp_enlist = 5 * 60
 time_pvp_knock = 10 #temp fix. will probably add spam prevention or something funny like restraining orders later
+time_pvp_policeradio = 30
 
 # time to get kicked out of subzone
 time_kickout = 60 * 60  # 1 hour
@@ -1276,6 +1277,7 @@ emote_nlacakanm = "<:nlacakanm:499615025544298517>"
 emote_megaslime = "<:megaslime:436877747240042508>"
 emote_srs = "<:srs:631859962519224341>"
 emote_staydead = "<:sd:506840095714836480>"
+emote_maxrevive = "<:MAXREVIVE:638902070690316289>"
 
 # Emotes for the negaslime writhe animation
 emote_vt = "<:vt:492067858160025600>"
@@ -1888,6 +1890,16 @@ context_slimeoidfood = 'slimeoidfood'
 context_slimeoidhelditem = 'slimeoidhelditem'
 context_wrappingpaper = 'wrappingpaper'
 
+# Trigger conditions for slimeoid held items
+trigger_uncommondamage = 'uncommondamage' # 2/10 base chance, but getting hit with damage makes it more likely to activate
+trigger_raredamage = 'raredamage' # 1/10 base chance, but getting hit with damage makes it more likely to activate
+trigger_massivedamage = 'massivedamage' # when a slimeoid gets hit for at least 50% of its current HP
+trigger_weakpointhit = 'weakpointhit' # when a slimeoid is hit for its hue/armor weakness
+trigger_loss = 'loss' # when a slimeoid loses
+trigger_lowhealth = 'lowhealth' # when a slimeoid is below 20% of its max HP
+trigger_oneshot = 'oneshot' # when a slimeoid gets hit for its max HP all at once
+trigger_none = 'none' # activates turn 1
+
 # Item vendor names.
 vendor_bar = 'bar'	#rate of non-mtn dew drinks are 100 slime to 9 hunger
 vendor_pizzahut = 'Pizza Hut'	#rate of fc vendors are 100 slime to 10 hunger
@@ -1905,6 +1917,7 @@ vendor_college = "College" #You can buy game guides from either of the colleges
 vendor_glocksburycomics = "Glocksbury Comics" #Repels and trading cards are sold here
 vendor_slimypersuits = "Slimy Persuits" #You can buy candy from here
 vendor_greencakecafe = "Green Cake Cafe" #Brunch foods
+vendor_arena = "The Battle Arena" #You can trade clout for slimeoid held items here
 
 item_id_slimepoudrin = 'slimepoudrin'
 item_id_doublestuffedcrust = 'doublestuffedcrust'
@@ -1985,7 +1998,7 @@ item_id_insidiouscandy = "insidiouscandy" #+chutzpah -moxie
 #slimeoid held items
 item_id_moxiemegameal = "moxiemegameal"
 item_id_chutzpahcherrysoda = "chutzpahcherrysoda"
-item_id_gritgruel = "gritgruel"
+item_id_gritgrits = "gritgrits"
 item_id_portablerefrigerator = "portablerefrigerator"
 item_id_anarchistsrefrigerator = "anarchistsrefrigerator"
 item_id_luckyclover = "luckyclover"
@@ -2005,8 +2018,6 @@ item_id_scatteredbrainscrambler = "scatteredbrainscrambler"
 item_id_skittishbrainscrambler = "skittishbrainscrambler"
 item_id_secretivebrainscrambler = "secretivebrainscrambler"
 item_id_perplexedbrainscrambler = "perplexedbrainscrambler"
-
-# ['white', 'yellow', 'orange', 'red', 'magenta', 'purple', 'blue', 'green', 'teal', 'rainbow', 'pink', 'grey', 'cobalt', 'black', 'lime', 'cyan']
 
 item_id_whitehueshifter = "whitehueshifter"
 item_id_yellowhueshifter = "yellowhueshifter"
@@ -2646,7 +2657,174 @@ item_list = [
 		increase = slimeoid_stat_moxie,
 		decrease = slimeoid_stat_chutzpah,
 	),
-	# Stat boosters
+	# Stat boosters / Misc. held items
+	EwSlimeoidHeldItem(
+		id_item = item_id_policeradio,
+		alias = [
+			"pr",
+			"policeradio",
+		],
+		str_name = "Police Radio",
+		str_desc = "An item to be held by slimeoids. If your slimeoid loses the battle while holding this item, you'll get PVP flagged for 30 seconds.\nIt's a small radio able to contact local authorities.",
+		vendors = [vendor_arena],
+		price = 10,
+		str_activate = "**{} activates its Police Radio. Uh oh, looks like its owner is in big trouble!**",
+		str_deactivate = "**{}'s Police Radio breaks down and stops working.**",
+		turn_count = 0, # never deactivates
+		trigger_condition = trigger_loss,
+	),
+	EwSlimeoidHeldItem(
+		id_item = item_id_portablerefrigerator,
+		alias = [
+			"portablefridge",
+			"pfridge"
+		],
+		str_name = "Portable Refrigerator",
+		str_desc = "An item to be held by slimeoids. Has a small chance to activate every turn and harden 2 of your slimeoid's sap.\nIt's a fairly small refrigerator with some cutesy drawings hung up on the door by letter magnets.",
+		vendors=[vendor_arena],
+		price=40,
+		str_activate = "**{} jumps inside its Portable Refrigerator! It hardens 2 sap!**",
+		str_deactivate = "**{} comes outside of its Portable Refrigerator.**",
+		turn_count = 0, # never deactivates
+		trigger_condition = trigger_raredamage,
+	),
+	EwSlimeoidHeldItem(
+		id_item = item_id_anarchistsrefrigerator,
+		alias = [
+			"anarchistsfridge",
+			"afridge",
+			"anarchofridge",
+			"anarchistfridge",
+			"analchestfridge", # refer to deagle nation
+		],
+		str_name = "Anarchist's Refrigerator",
+		str_desc = "An item to be held by slimeoids. Activates when your slimeoid takes a lot of damage, causing it to harden 10 sap.\nIt's a rather large refrigerator rusted to hell and back. There's some spray paint on the door.",
+		vendors=[vendor_arena],
+		price=50,
+		str_activate = "**{} jumps inside its Anarchist's Refrigerator! It hardens 10 sap!**",
+		str_deactivate = "**{} comes outside of its Anarchist's Refrigerator.**",
+		turn_count = 0, # never deactivates
+		trigger_condition = trigger_massivedamage,
+	),
+	EwSlimeoidHeldItem(
+		id_item = item_id_luckyclover,
+		alias = [
+			"clover",
+			"luckyclover",
+			"4leafclover"
+		],
+		str_name = "Lucky Clover",
+		str_desc = "An item to be held by slimeoids. Has a small chance to give your slimeoid better sap rolls for 10 turns.\nIt's a small four-leaf clover, contained in a tiny plastic baggie.",
+		vendors=[vendor_arena],
+		price=40,
+		str_activate = "**{} dons its Lucky Clover! Its imbued with a newfound sense of fortune!**",
+		str_deactivate = "**{}'s Lucky Clover falls off its body. It doesn't feel very lucky anymore...**",
+		turn_count = 10,
+		trigger_condition = trigger_raredamage
+	),
+	EwSlimeoidHeldItem(
+		id_item = item_id_warhorn,
+		alias = [
+			"warhorn",
+			"wh",
+			"whorn",
+			"horn",
+			"cornucopia"
+		],
+		str_name = "War Horn",
+		str_desc = "An item to be held by slimeoids. If your slimeoid is hit for its weak point, its moxie and chutzpah will both increase by 1 for 10 turns.\nIt's an instrument of some acient civilization, fashioned out of an elephant's tusk... or is it a mammoth's?",
+		vendors=[vendor_arena],
+		price=30,
+		str_activate = "**{} toots its War Horn! It's Moxie and Chutzpah both go up by 1!**",
+		str_deactivate = "**The high that {} got by blowing its War Horn has worn off. It's Moxie and Chutzpah both go down by 1.**",
+		turn_count = 10,
+		trigger_condition = trigger_weakpointhit,
+	),
+	EwSlimeoidHeldItem(
+		id_item = item_id_plantb,
+		alias = [
+			"plantb",
+			"plant-b",
+			"plant b",
+			"pb"
+		],
+		str_name = "Plant B",
+		str_desc = "An item to be held by slimeoids. Has a chance to increase a random stat by 2 for 10 turns.\nIt's an experimental green herb. Rumors say SlimeCorp is involved.",
+		vendors=[vendor_arena],
+		price=30,
+		str_activate = "**{} munches on its Plant B!**",
+		str_deactivate = "**The medicinal properties of Plant B no longer affect {}.**",
+		turn_count = 10,
+		trigger_condition = trigger_uncommondamage,
+	),
+	EwSlimeoidHeldItem(
+		id_item = item_id_highfructoseslimesyrup,
+		alias = [
+			"corn syrup",
+			"highfructoseslimesyrup",
+			"hfss",
+			"syrup"
+		],
+		str_name = "High-Fructose Slime Syrup",
+		str_desc = "An item to be held by slimeoids. When a slimeoid is low on health, it will restore 20% of its max HP.\nIt's a small jar containing an artificial sweetener.",
+		vendors=[vendor_arena],
+		price=30,
+		str_activate = "**{} cracks open a fresh jar of High-Fructose Slime Syrup! It restores some HP!**",
+		str_deactivate = "**{}'s High-Fructose Slime Syrup expires and is quickly discarded.**",
+		turn_count = 0, # never deactivates
+		trigger_condition = trigger_lowhealth
+	),
+	EwSlimeoidHeldItem(
+		id_item = item_id_staydeadshalo,
+		alias = [
+			"halo",
+			"sdh",
+			"staydeadshalo",
+			"ghost halo"
+		],
+		str_name = "Staydead's Halo",
+		str_desc = "An item to be held by slimeoids. If the slimeoid holding this gets one-shot, it will live at 1 HP, and !haunt the opposing slimeoid, reducing their HP by 50%.\nIt's a halo, made out of pure, hardened negaslime.",
+		str_activate = "**Oh the humanity! {} just barely clings onto its Staydead's Halo! It haunts some of its opponent's HP!**",
+		str_deactivate = "**{}'s Staydead's Halo shatters into a thousand tiny pieces, unceremoniously, like a Cadillac with 80,000 miles on the motor.**",
+		turn_count = 0, # never deactivates
+		trigger_condition = trigger_oneshot
+	),
+	EwSlimeoidHeldItem(
+		id_item = item_id_berserkergene,
+		alias = [
+			"gene",
+			"bgene",
+			"bg",
+			"berserker",
+			"berserk"
+		],
+		str_name = "Berserker Gene",
+		str_desc = "An item to be held by slimeoids. While holding this item, your slimeoid's attacks will do 25% more damage, but at the cost of 10% of its health.\nIt's a set of red chains which goes around your slimeoid's neck. You're not sure where the name comes from.",
+		vendors=[vendor_arena],
+		price=50,
+		str_activate = "**{}'s Berserker Gene glows with a red aura!**",
+		str_deactivate = "**{}'s Berserker Gene breaks apart.**",
+		turn_count = 0, # never deactivates
+		trigger_condition = trigger_none
+	),
+	EwSlimeoidHeldItem(
+		id_item = item_id_elephantsfoot,
+		alias = [
+			"foot",
+			"elephantsfoot",
+			"efoot",
+			"megastone",
+			"mega stone"
+		],
+		str_name = "Elephant's Foot",
+		str_desc = "An item to be held by slimeoids. If your slimeoid gets hit for massive damage, it will undergo a **Mega Mutation**, boosting all of its stats by 1, as well as hardening 1 sap, for 15 turns.\nIt's a chunk of radioactive toxic sluge. Just looking at it makes you feel like you're going to die.",
+		vendors=[vendor_arena],
+		price=70,
+		str_activate = "**Holding onto it's Elephant's Foot for dear life, {} emerges from a flash of blinding light!",
+		str_deactivate = "**{}'s Elephant's Foot dissolves into nothingness, causing it to devolve back into its normal state.",
+		turn_count = 15,
+		trigger_condition = trigger_massivedamage
+	),
 	EwSlimeoidHeldItem(
 		id_item = item_id_moxiemegameal,
 		alias = [
@@ -2654,13 +2832,13 @@ item_list = [
 			"moxiemegameal",
 		],
 		str_name = "Moxie Mega Meal",
-		str_desc = "An item to be held by slimeoids. Has a chance to increase moxie by 1.",
-		vendors = [vendor_glocksburycomics],
-		price = 10000,
+		str_desc = "An item to be held by slimeoids. Has a chance to increase moxie by 1 for 10 turns.\nIt's a brown paper bag with a cheeseburger, large fry, and 6-piece box of chicken nuggets inside.",
+		vendors=[vendor_arena],
+		price=30,
 		str_activate = "**{} chews on its Moxie Mega Meal! Its moxie goes up by 1!**",
 		str_deactivate = "**{} has fully digested its Moxie Mega Meal. Its moxie returns to normal.**",
 		turn_count = 10,
-		trigger_condition = "uncommondamage",
+		trigger_condition = trigger_uncommondamage,
 	),
 	EwSlimeoidHeldItem(
 		id_item = item_id_chutzpahcherrysoda,
@@ -2669,28 +2847,28 @@ item_list = [
 			"chutzpahcherrysoda",
 		],
 		str_name = "Chutzpah Cherry Soda",
-		str_desc = "An item to be held by slimeoids. Has a chance to increase chutzpah by 1.",
-		vendors = [vendor_glocksburycomics],
-		price = 10000,
+		str_desc = "An item to be held by slimeoids. Has a chance to increase chutzpah by 1 for 10 turns.\nIt's a large cup of cherry soda, fitted with a plastic covering and straw.",
+		vendors=[vendor_arena],
+		price=30,
 		str_activate = "**{} slurps up its Chutzpah Cherry Soda! Its chutzpah goes up by 1!**",
 		str_deactivate = "**{} has fully digested its Chutzpah Cherry Soda. Its chutzpah returns to normal.**",
 		turn_count = 10,
-		trigger_condition = "uncommondamage",
+		trigger_condition = trigger_uncommondamage,
 	),
 	EwSlimeoidHeldItem(
-		id_item = item_id_gritgruel,
+		id_item = item_id_gritgrits,
 		alias = [
 			"grgr",
-			"gritgruel",
+			"gritgrits",
 		],
-		str_name = "Grit Gruel",
-		str_desc = "An item to be held by slimeoids. Has a chance to increase grit by 1.",
-		vendors = [vendor_glocksburycomics],
-		price = 10000,
-		str_activate = "**{} heartily enjoys its Grit Gruel! Its grit goes up by 1!**",
-		str_deactivate = "**{} has fully digested its Grit Gruel. Its grit returns to normal.**",
+		str_name = "Grit Grits",
+		str_desc = "An item to be held by slimeoids. Has a chance to increase grit by 1 for 10 turns.\nIt's a small bowl of cornmeal, boiled in milk.",
+		vendors=[vendor_arena],
+		price=30,
+		str_activate = "**{} heartily enjoys its Grit Grits! Its grit goes up by 1!**",
+		str_deactivate = "**{} has fully digested its Grit Grits. Its grit returns to normal.**",
 		turn_count = 10,
-		trigger_condition = "uncommondamage",
+		trigger_condition = trigger_uncommondamage,
 	),
 	# Brain scramblers
 	EwSlimeoidHeldItem(
@@ -2701,13 +2879,13 @@ item_list = [
 			"irritablebrainscrambler",
 		],
 		str_name = "Irritable Brain Scrambler",
-		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid an extremely irritable brain.",
-		vendors = [vendor_glocksburycomics],
-		price = 10000,
+		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid an extremely irritable brain for 20 turns.\nIt's a machine of some sort that latches onto your slimeoid's head.",
+		vendors=[vendor_arena],
+		price=40,
 		str_activate = "**{} activates its Irritable Brain Scrambler! Its expression turns into a vicious scowl!**",
 		str_deactivate = "**{}'s Irritable Brain Scrambler breaks down. Its brain returns to normal.**",
 		turn_count = 20,
-		trigger_condition = "uncommondamage",
+		trigger_condition = trigger_uncommondamage,
 		subcontext = "a",
 	),
 	EwSlimeoidHeldItem(
@@ -2718,13 +2896,13 @@ item_list = [
 			"enthusiasticbrainscrambler",
 		],
 		str_name = "Enthusiastic Brain Scrambler",
-		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid an enthusiastic brain.",
-		vendors = [vendor_glocksburycomics],
-		price = 10000,
+		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid an enthusiastic brain for 20 turns.\nIt's a machine of some sort that latches onto your slimeoid's head.",
+		vendors=[vendor_arena],
+		price=40,
 		str_activate = "**{} activates its Enthusiastic Brain Scrambler! It starts to focus intensely on the enemy slimeoid!**",
 		str_deactivate = "**{}'s Enthusiastic Brain Scrambler breaks down. Its brain returns to normal.**",
 		turn_count = 20,
-		trigger_condition = "uncommondamage",
+		trigger_condition = trigger_uncommondamage,
 		subcontext = "b",
 	),
 	EwSlimeoidHeldItem(
@@ -2735,13 +2913,13 @@ item_list = [
 			"withdrawnbrainscrambler",
 		],
 		str_name = "Withdrawn Brain Scrambler",
-		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a quiet and withdrawn brain.",
-		vendors = [vendor_glocksburycomics],
-		price = 10000,
+		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a quiet and withdrawn brain for 20 turns.\nIt's a machine of some sort that latches onto your slimeoid's head.",
+		vendors=[vendor_arena],
+		price=40,
 		str_activate = "**{} activates its Withdrawn Brain Scrambler! Its expression turns deadpanned!**",
 		str_deactivate = "**{}'s Withdrawn Brain Scrambler breaks down. Its brain returns to normal.**",
 		turn_count = 20,
-		trigger_condition = "uncommondamage",
+		trigger_condition = trigger_uncommondamage,
 		subcontext = "c",
 	),
 	EwSlimeoidHeldItem(
@@ -2752,13 +2930,13 @@ item_list = [
 			"scatteredbrainscrambler",
 		],
 		str_name = "Scattered Brain Scrambler",
-		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a scattered brain.",
-		vendors = [vendor_glocksburycomics],
-		price = 10000,
+		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a scattered brain for 20 turns.\nIt's a machine of some sort that latches onto your slimeoid's head.",
+		vendors=[vendor_arena],
+		price=40,
 		str_activate = "**{} activates its Scattered Brain Scrambler! Its entire body freezes in place!**",
 		str_deactivate = "**{}'s Scattered Brain Scrambler breaks down. Its brain returns to normal.**",
 		turn_count = 20,
-		trigger_condition = "uncommondamage",
+		trigger_condition = trigger_uncommondamage,
 		subcontext = "d",
 	),
 	EwSlimeoidHeldItem(
@@ -2769,13 +2947,13 @@ item_list = [
 			"skittishbrainscrambler",
 		],
 		str_name="Skittish Brain Scrambler",
-		str_desc="An item to be held by slimeoids. Has a chance to give your slimeoid skittish and jumpy brain.",
-		vendors=[vendor_glocksburycomics],
-		price=10000,
+		str_desc="An item to be held by slimeoids. Has a chance to give your slimeoid skittish and jumpy brain for 20 turns.\nIt's a machine of some sort that latches onto your slimeoid's head.",
+		vendors=[vendor_arena],
+		price=40,
 		str_activate="**{} activates its Skittish Brain Scrambler! It starts to spaz the fuck out!**",
 		str_deactivate="**{}'s Skittish Brain Scrambler breaks down. Its brain returns to normal.**",
 		turn_count=20,
-		trigger_condition="uncommondamage",
+		trigger_condition = trigger_uncommondamage,
 		subcontext = "e",
 	),
 	EwSlimeoidHeldItem(
@@ -2786,13 +2964,13 @@ item_list = [
 			"secretivebrainscrambler",
 		],
 		str_name = "Secretive Brain Scrambler",
-		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a secretive and cunning brain.",
-		vendors = [vendor_glocksburycomics],
-		price = 10000,
+		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a secretive and cunning brain for 20 turns.\nIt's a machine of some sort that latches onto your slimeoid's head.",
+		vendors=[vendor_arena],
+		price=40,
 		str_activate = "**{} activates its Secretive Brain Scrambler! It begins to chuckle to itself!**",
 		str_deactivate = "**{}'s Secretive Brain Scrambler breaks down. Its brain returns to normal.**",
 		turn_count = 20,
-		trigger_condition = "uncommondamage",
+		trigger_condition = trigger_uncommondamage,
 		subcontext = "f",
 	),
 	EwSlimeoidHeldItem(
@@ -2803,13 +2981,13 @@ item_list = [
 			"perplexedbrainscrambler",
 		],
 		str_name = "Perplexed Brain Scrambler",
-		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a confused and inquisitive brain.",
-		vendors = [vendor_glocksburycomics],
-		price = 10000,
+		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a confused and inquisitive brain for 20 turns.\nIt's a machine of some sort that latches onto your slimeoid's head.",
+		vendors=[vendor_arena],
+		price=40,
 		str_activate = "**{} activates its Perplexed Brain Scrambler! It starts to wander around aimlessly!**",
 		str_deactivate = "**{}'s Perplexed Brain Scrambler breaks down. Its brain returns to normal.**",
 		turn_count = 20,
-		trigger_condition = "uncommondamage",
+		trigger_condition = trigger_uncommondamage,
 		subcontext = "g",
 	),
 	# Hue shifters
@@ -2820,13 +2998,13 @@ item_list = [
 			"whitehueshifter",
 		],
 		str_name = "White Hue Shifter",
-		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a white hue.",
-		vendors = [vendor_glocksburycomics],
-		price = 10000,
+		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a white hue for 20 turns.\n It's a machine of some sort that injects dye into your slimeoid's body.",
+		vendors=[vendor_arena],
+		price=20,
 		str_activate = "**{} activates a hue shifter! It begins to glow a ghostly white!**",
 		str_deactivate = "**{}'s White Hue Shifter breaks down. Its color fades back to what it was before.**",
-		turn_count = 10,
-		trigger_condition = "uncommondamage",
+		turn_count = 20,
+		trigger_condition = trigger_uncommondamage,
 		subcontext = "white",
 	),
 	EwSlimeoidHeldItem(
@@ -2836,13 +3014,13 @@ item_list = [
 			"yellowhueshifter",
 		],
 		str_name = "Yellow Hue Shifter",
-		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a yellow hue.",
-		vendors = [vendor_glocksburycomics],
-		price = 10000,
+		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a yellow hue for 20 turns.\n It's a machine of some sort that injects dye into your slimeoid's body.",
+		vendors=[vendor_arena],
+		price=20,
 		str_activate = "**{} activates its Yellow Hue Shifter! It begins to shine a bright yellow!**",
 		str_deactivate = "**{}'s Yellow Hue Shifter breaks down. Its color fades back to what it was before.**",
-		turn_count = 10,
-		trigger_condition = "uncommondamage",
+		turn_count = 20,
+		trigger_condition = trigger_uncommondamage,
 		subcontext = "yellow",
 	),
 	EwSlimeoidHeldItem(
@@ -2852,13 +3030,13 @@ item_list = [
 			"orangehueshifter",
 		],
 		str_name = "Orange Hue Shifter",
-		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid an orange hue.",
-		vendors = [vendor_glocksburycomics],
-		price = 10000,
+		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid an orange hue for 20 turns.\n It's a machine of some sort that injects dye into your slimeoid's body.",
+		vendors=[vendor_arena],
+		price=20,
 		str_activate = "**{} activates a hue shifter! It turns a warm orange!**",
 		str_deactivate = "**{}'s Orange Hue Shifter breaks down. Its color fades back to what it was before.**",
-		turn_count = 10,
-		trigger_condition = "uncommondamage",
+		turn_count = 20,
+		trigger_condition = trigger_uncommondamage,
 		subcontext = "orange",
 	),
 	EwSlimeoidHeldItem(
@@ -2868,13 +3046,13 @@ item_list = [
 			"redhueshifter",
 		],
 		str_name = "Red Hue Shifter",
-		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a red hue.",
-		vendors = [vendor_glocksburycomics],
-		price = 10000,
+		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a red hue for 20 turns.\n It's a machine of some sort that injects dye into your slimeoid's body.",
+		vendors=[vendor_arena],
+		price=20,
 		str_activate = "**{} activates a hue shifter! It darkens a deep shade of crimson red!**",
 		str_deactivate = "**{}'s Red Hue Shifter breaks down. Its color fades back to what it was before.**",
-		turn_count = 10,
-		trigger_condition = "uncommondamage",
+		turn_count = 20,
+		trigger_condition = trigger_uncommondamage,
 		subcontext = "red",
 	),
 	EwSlimeoidHeldItem(
@@ -2884,13 +3062,13 @@ item_list = [
 			"magentahueshifter",
 		],
 		str_name = "Magenta Hue Shifter",
-		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a magenta hue.",
-		vendors = [vendor_glocksburycomics],
-		price = 10000,
+		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a magenta hue for 20 turns.\n It's a machine of some sort that injects dye into your slimeoid's body.",
+		vendors=[vendor_arena],
+		price=20,
 		str_activate = "**{} activates a hue shifter! It turns a vivid magenta!**",
 		str_deactivate = "**{}'s Magenta Hue Shifter breaks down. Its color fades back to what it was before.**",
-		turn_count = 10,
-		trigger_condition = "uncommondamage",
+		turn_count = 20,
+		trigger_condition = trigger_uncommondamage,
 		subcontext = "magenta",
 	),
 	EwSlimeoidHeldItem(
@@ -2900,13 +3078,13 @@ item_list = [
 			"purplehueshifter",
 		],
 		str_name = "Purple Hue Shifter",
-		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a purple hue.",
-		vendors = [vendor_glocksburycomics],
-		price = 10000,
+		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a purple hue for 20 turns.\n It's a machine of some sort that injects dye into your slimeoid's body.",
+		vendors=[vendor_arena],
+		price=20,
 		str_activate = "**{} activates a hue shifter! It turns a dark purple!**",
 		str_deactivate = "**{}'s Purple Hue Shifter breaks down. Its color fades back to what it was before.**",
-		turn_count = 10,
-		trigger_condition = "uncommondamage",
+		turn_count = 20,
+		trigger_condition = trigger_uncommondamage,
 		subcontext = "purple",
 	),
 	EwSlimeoidHeldItem(
@@ -2916,13 +3094,13 @@ item_list = [
 			"bluehueshifter",
 		],
 		str_name = "Blue Hue Shifter",
-		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a blue hue.",
-		vendors = [vendor_glocksburycomics],
-		price = 10000,
+		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a blue hue for 20 turns.\n It's a machine of some sort that injects dye into your slimeoid's body.",
+		vendors=[vendor_arena],
+		price=20,
 		str_activate = "**{} activates a hue shifter! It turns a deep blue!**",
 		str_deactivate = "**{}'s Blue Hue Shifter breaks down. Its color fades back to what it was before.**",
-		turn_count = 10,
-		trigger_condition = "uncommondamage",
+		turn_count = 20,
+		trigger_condition = trigger_uncommondamage,
 		subcontext = "blue",
 	),
 	EwSlimeoidHeldItem(
@@ -2932,13 +3110,13 @@ item_list = [
 			"greenhueshifter",
 		],
 		str_name = "Green Hue Shifter",
-		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a green hue.",
-		vendors = [vendor_glocksburycomics],
-		price = 10000,
+		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a green hue for 20 turns.\n It's a machine of some sort that injects dye into your slimeoid's body.",
+		vendors=[vendor_arena],
+		price=20,
 		str_activate = "**{} activates a hue shifter! It turns a shade of green that barely distinguishes itself from a Slimeoid’s standard hue.**",
 		str_deactivate = "**{}'s Green Hue Shifter breaks down. Its color fades back to what it was before.**",
-		turn_count = 10,
-		trigger_condition = "uncommondamage",
+		turn_count = 20,
+		trigger_condition = trigger_uncommondamage,
 		subcontext = "green",
 	),
 	EwSlimeoidHeldItem(
@@ -2948,13 +3126,13 @@ item_list = [
 			"tealhueshifter",
 		],
 		str_name = " Hue Shifter",
-		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a teal hue.",
-		vendors = [vendor_glocksburycomics],
-		price = 10000,
+		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a teal hue for 20 turns.\n It's a machine of some sort that injects dye into your slimeoid's body.",
+		vendors=[vendor_arena],
+		price=20,
 		str_activate = "**{} activates a hue shifter! It looks so purdy now!**",
 		str_deactivate = "**{}'s teal Hue Shifter breaks down. Its color fades back to what it was before.**",
-		turn_count = 10,
-		trigger_condition = "uncommondamage",
+		turn_count = 20,
+		trigger_condition = trigger_uncommondamage,
 		subcontext = "teal",
 	),
 	EwSlimeoidHeldItem(
@@ -2964,13 +3142,13 @@ item_list = [
 			"rainbowhueshifter",
 		],
 		str_name = "Rainbow Hue Shifter",
-		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a rainbow hue.",
-		vendors = [vendor_glocksburycomics],
-		price = 10000,
+		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a rainbow hue for 20 turns.\n It's a machine of some sort that injects dye into your slimeoid's body.",
+		vendors=[vendor_arena],
+		price=20,
 		str_activate = "**{} activates a hue shifter! It turns a fantastic shade of... well, everything!!**",
 		str_deactivate = "**{}'s Rainbow Hue Shifter breaks down. Its color fades back to what it was before.**",
-		turn_count = 10,
-		trigger_condition = "uncommondamage",
+		turn_count = 20,
+		trigger_condition = trigger_uncommondamage,
 		subcontext = "rainbow",
 	),
 	EwSlimeoidHeldItem(
@@ -2980,13 +3158,13 @@ item_list = [
 			"pinkhueshifter",
 		],
 		str_name = "Pink Hue Shifter",
-		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a pink hue.",
-		vendors = [vendor_glocksburycomics],
-		price = 10000,
+		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a pink hue for 20 turns.\n It's a machine of some sort that injects dye into your slimeoid's body.",
+		vendors=[vendor_arena],
+		price=20,
 		str_activate = "**{} activates a hue shifter! It turns a vibrant shade of pink!**",
 		str_deactivate = "**{}'s Pink Hue Shifter breaks down. Its color fades back to what it was before.**",
-		turn_count = 10,
-		trigger_condition = "uncommondamage",
+		turn_count = 20,
+		trigger_condition = trigger_uncommondamage,
 		subcontext = "pink",
 	),
 	EwSlimeoidHeldItem(
@@ -2996,13 +3174,13 @@ item_list = [
 			"greyhueshifter",
 		],
 		str_name = "Grey Hue Shifter",
-		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a grey hue.",
-		vendors = [vendor_glocksburycomics],
-		price = 10000,
+		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a grey hue for 20 turns.\n It's a machine of some sort that injects dye into your slimeoid's body.",
+		vendors=[vendor_arena],
+		price=20,
 		str_activate = "**{} activates a hue shifter! It turns a dull, somber grey.**",
 		str_deactivate = "**{}'s Grey Hue Shifter breaks down. Its color fades back to what it was before.**",
-		turn_count = 10,
-		trigger_condition = "uncommondamage",
+		turn_count = 20,
+		trigger_condition = trigger_uncommondamage,
 		subcontext = "grey",
 	),
 	EwSlimeoidHeldItem(
@@ -3012,13 +3190,13 @@ item_list = [
 			"cobalthueshifter",
 		],
 		str_name = "Cobalt Hue Shifter",
-		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a cobalt hue.",
-		vendors = [vendor_glocksburycomics],
-		price = 10000,
+		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a cobalt hue for 20 turns.\n It's a machine of some sort that injects dye into your slimeoid's body.",
+		vendors=[vendor_arena],
+		price=20,
 		str_activate = "**{} activates a hue shifter! It turns a shimmering cobalt!**",
 		str_deactivate = "**{}'s Cobalt Hue Shifter breaks down. Its color fades back to what it was before.**",
-		turn_count = 10,
-		trigger_condition = "uncommondamage",
+		turn_count = 20,
+		trigger_condition = trigger_uncommondamage,
 		subcontext = "cobalt",
 	),
 	EwSlimeoidHeldItem(
@@ -3028,13 +3206,13 @@ item_list = [
 			"blackhueshifter",
 		],
 		str_name = "Black Hue Shifter",
-		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a black hue.",
-		vendors = [vendor_glocksburycomics],
-		price = 10000,
+		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a black hue for 20 turns.\n It's a machine of some sort that injects dye into your slimeoid's body.",
+		vendors=[vendor_arena],
+		price=20,
 		str_activate = "**{} activates its Black Hue Shifter! It turns pitch black!**",
 		str_deactivate = "**{}'s Black Hue Shifter breaks down. Its color fades back to what it was before.**",
-		turn_count = 10,
-		trigger_condition = "uncommondamage",
+		turn_count = 20,
+		trigger_condition = trigger_uncommondamage,
 		subcontext = "black",
 	),
 	EwSlimeoidHeldItem(
@@ -3044,13 +3222,13 @@ item_list = [
 			"limehueshifter",
 		],
 		str_name = "Lime Hue Shifter",
-		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a lime hue.",
-		vendors = [vendor_glocksburycomics],
-		price = 10000,
+		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a lime hue for 20 turns.\n It's a machine of some sort that injects dye into your slimeoid's body.",
+		vendors=[vendor_arena],
+		price=20,
 		str_activate = "**{} activates a hue shifter! It turns a heavily saturated lime!**",
 		str_deactivate = "**{}'s Lime Hue Shifter breaks down. Its color fades back to what it was before.**",
-		turn_count = 10,
-		trigger_condition = "uncommondamage",
+		turn_count = 20,
+		trigger_condition = trigger_uncommondamage,
 		subcontext = "lime",
 	),
 	EwSlimeoidHeldItem(
@@ -3060,14 +3238,22 @@ item_list = [
 			"cyanhueshifter",
 		],
 		str_name = "Cyan Hue Shifter",
-		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a cyan hue.",
-		vendors = [vendor_glocksburycomics],
-		price = 10000,
+		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid a cyan hue for 20 turns.\n It's a machine of some sort that injects dye into your slimeoid's body.",
+		vendors=[vendor_arena],
+		price=20,
 		str_activate = "**{} activates a hue shifter! It turned a light cyan!**",
 		str_deactivate = "**{}'s Cyan Hue Shifter breaks down. Its color fades back to what it was before.**",
-		turn_count = 10,
-		trigger_condition = "uncommondamage",
+		turn_count = 20,
+		trigger_condition = trigger_uncommondamage,
 		subcontext = "cyan",
+	),
+	EwSlimeoidFood(
+		id_item = item_id_maxrevive,
+		str_name="Max Revive " + emote_maxrevive,
+		str_desc="A hardened combination of slime poudrins. Feed it to your slimeoid, and it'll be ready for battle in no time.",
+		acquisition=acquisition_smelting,
+		increase = None,
+		decrease = None,
 	),
 ]
 item_list += ewdebug.debugitem_set
@@ -8874,7 +9060,8 @@ poi_list = [
 		role = "Arena",
 		pvp = False,
 		is_subzone = True,
-		mother_district = poi_id_vandalpark
+		mother_district = poi_id_vandalpark,
+		vendors = [vendor_arena]
 	),
 	EwPoi( # the-dojo
 		id_poi = poi_id_dojo,
@@ -12247,6 +12434,20 @@ smelting_recipe_list = [
 		},
 		products = ['slimepoudrin']
 	),
+	EwSmeltingRecipe(
+		id_recipe = "maxrevive",
+		str_name = "a Max Revive " + emote_maxrevive,
+		alias = [
+			"maxrevive",
+			"revive",
+			"slimeoidrevive",
+			"max revive"
+		],
+		ingredients = {
+			'slimepoudrin': 3
+		},
+		products = ['maxrevive']
+	)
 ]
 smelting_recipe_list += ewdebug.debugrecipes
 
@@ -15329,8 +15530,29 @@ slimeoid_brainscrambler_held_item_ids = [ # used to see if a brain needs to be c
 ]
 
 slimeoid_hueshifter_held_item_ids = [ # used to see if a hue needs to be changed mid-battle
+	item_id_whitehueshifter,
+	item_id_yellowhueshifter,
+	item_id_orangehueshifter,
+	item_id_redhueshifter,
+	item_id_magentahueshifter,
+	item_id_purplehueshifter,
+	item_id_bluehueshifter,
+	item_id_greenhueshifter,
+	item_id_tealhueshifter,
 	item_id_rainbowhueshifter,
+	item_id_pinkhueshifter,
+	item_id_greyhueshifter,
+	item_id_cobalthueshifter,
+	item_id_blackhueshifter,
+	item_id_limehueshifter,
+	item_id_cyanhueshifter
 ]
+
+slimeoid_reusable_held_item_ids = [ # used to not remove an item from battle after use
+	item_id_portablerefrigerator
+]
+
+
 
 # lists of all the discord server objects served by bot, identified by the server id
 server_list = {}
