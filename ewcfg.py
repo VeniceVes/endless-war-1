@@ -2680,10 +2680,10 @@ item_list = [
 			"pfridge"
 		],
 		str_name = "Portable Refrigerator",
-		str_desc = "An item to be held by slimeoids. Has a small chance to activate every turn and harden 2 of your slimeoid's sap.\nIt's a fairly small refrigerator with some cutesy drawings hung up on the door by letter magnets.",
+		str_desc = "An item to be held by slimeoids. Has a small chance to activate every turn and harden some of your slimeoid's sap.\nIt's a fairly small refrigerator with some cutesy drawings hung up on the door by letter magnets.",
 		vendors=[vendor_arena],
 		price=40,
-		str_activate = "**{} jumps inside its Portable Refrigerator! It hardens 2 sap!**",
+		str_activate = "**{} jumps inside its Portable Refrigerator!**",
 		str_deactivate = "**{} comes outside of its Portable Refrigerator.**",
 		turn_count = 0, # never deactivates
 		trigger_condition = trigger_raredamage,
@@ -2698,10 +2698,10 @@ item_list = [
 			"analchestfridge", # refer to deagle nation
 		],
 		str_name = "Anarchist's Refrigerator",
-		str_desc = "An item to be held by slimeoids. Activates when your slimeoid takes a lot of damage, causing it to harden 10 sap.\nIt's a rather large refrigerator rusted to hell and back. There's some spray paint on the door.",
+		str_desc = "An item to be held by slimeoids. Activates when your slimeoid takes a lot of damage, causing it to harden a lot of sap.\nIt's a rather large refrigerator rusted to hell and back. There's some spray paint on the door.",
 		vendors=[vendor_arena],
 		price=50,
-		str_activate = "**{} jumps inside its Anarchist's Refrigerator! It hardens 10 sap!**",
+		str_activate = "**{} jumps inside its Anarchist's Refrigerator!**",
 		str_deactivate = "**{} comes outside of its Anarchist's Refrigerator.**",
 		turn_count = 0, # never deactivates
 		trigger_condition = trigger_massivedamage,
@@ -2819,7 +2819,7 @@ item_list = [
 			"mega stone"
 		],
 		str_name = "Elephant's Foot",
-		str_desc = "An item to be held by slimeoids. If your slimeoid gets hit for massive damage, it will undergo a **Mega Mutation**, boosting all of its stats by 1, as well as hardening 5 sap, for 15 turns.\nIt's a chunk of radioactive toxic sluge. Just looking at it makes you feel like you're going to die.",
+		str_desc = "An item to be held by slimeoids. If your slimeoid gets hit for massive damage, it will undergo a **Mega Mutation**, boosting all of its stats by 1 for 15 turns.\nIt's a chunk of radioactive toxic sluge. Just looking at it makes you feel like you're going to die.",
 		vendors=[vendor_arena],
 		price=70,
 		str_activate = "**Holding onto it's Elephant's Foot for dear life,** {} **emerges from a flash of blinding light!**",
@@ -13258,8 +13258,9 @@ def get_strat_a(combat_data, in_range, first_turn, active):
 	else:
 		strat_used = slimeoid_strat_block
 
+	min_sap = int(combat_data.sap * 0.5) if combat_data.held_item_status == "lucky" else 0
 	if first_turn:
-		sap_spend = int(random.triangular(0, combat_data.sap, int(combat_data.sap * 0.8))) + 1
+		sap_spend = int(random.triangular(min_sap, combat_data.sap, int(combat_data.sap * 0.8))) + 1
 
 	else:
 		sap_spend = combat_data.sap
@@ -13301,8 +13302,9 @@ def get_strat_b(combat_data, in_range, first_turn, active):
 	else:
 		strat_used = slimeoid_strat_block
 
+	min_sap = int(combat_data.sap * 0.5) if combat_data.held_item_status == "lucky" else 0
 	if first_turn:
-		sap_spend = int(random.triangular(0, combat_data.sap, int(combat_data.sap * 0.65))) + 1
+		sap_spend = int(random.triangular(min_sap, combat_data.sap, int(combat_data.sap * 0.65))) + 1
 
 	else:
 		sap_spend = combat_data.sap
@@ -13342,8 +13344,9 @@ def get_strat_c(combat_data, in_range, first_turn, active):
 	else:
 		strat_used = slimeoid_strat_block
 
+	min_sap = int(combat_data.sap * 0.5) if combat_data.held_item_status == "lucky" else 0
 	if first_turn:
-		sap_spend = int(random.triangular(0, combat_data.sap, int(combat_data.sap * 0.8))) + 1
+		sap_spend = int(random.triangular(min_sap, combat_data.sap, int(combat_data.sap * 0.8))) + 1
 
 	else:
 		sap_spend = combat_data.sap
@@ -13383,8 +13386,9 @@ def get_strat_d(combat_data, in_range, first_turn, active):
 	else:
 		strat_used = slimeoid_strat_block
 
+	min_sap = int(combat_data.sap * 0.5) if combat_data.held_item_status == "lucky" else 0
 	if first_turn:
-		sap_spend = int(random.triangular(0, combat_data.sap, int(combat_data.sap * 0.35))) + 1
+		sap_spend = int(random.triangular(min_sap, combat_data.sap, int(combat_data.sap * 0.35))) + 1
 
 	else:
 		sap_spend = combat_data.sap
@@ -13424,8 +13428,9 @@ def get_strat_e(combat_data, in_range, first_turn, active):
 	else:
 		strat_used = slimeoid_strat_block
 
+	min_sap = int(combat_data.sap * 0.5) if combat_data.held_item_status == "lucky" else 0
 	if first_turn:
-		sap_spend = int(random.triangular(0, combat_data.sap, int(combat_data.sap * 0.65))) + 1
+		sap_spend = int(random.triangular(min_sap, combat_data.sap, int(combat_data.sap * 0.65))) + 1
 
 	else:
 		sap_spend = combat_data.sap
@@ -13468,8 +13473,9 @@ def get_strat_f(combat_data, in_range, first_turn, active):
 	else:
 		strat_used = slimeoid_strat_block
 
+	min_sap = int(combat_data.sap * 0.5) if combat_data.held_item_status == "lucky" else 0
 	if first_turn:
-		sap_spend = int(random.triangular(0, combat_data.sap, int(combat_data.sap * 0.35))) + 1
+		sap_spend = int(random.triangular(min_sap, combat_data.sap, int(combat_data.sap * 0.35))) + 1
 
 	else:
 		sap_spend = combat_data.sap
@@ -13507,8 +13513,9 @@ def get_strat_g(combat_data, in_range, first_turn, active):
 	else:
 		strat_used = slimeoid_strat_block
 
+	min_sap = int(combat_data.sap * 0.5) if combat_data.held_item_status == "lucky" else 0
 	if first_turn:
-		sap_spend = int(random.triangular(0, combat_data.sap, int(combat_data.sap * 0.2))) + 1
+		sap_spend = int(random.triangular(min_sap, combat_data.sap, int(combat_data.sap * 0.2))) + 1
 
 	else:
 		sap_spend = combat_data.sap

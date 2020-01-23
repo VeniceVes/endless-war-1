@@ -2782,6 +2782,7 @@ async def battle_slimeoids(id_s1, id_s2, channel, battle_type):
 		print("DEBUG S1 MAXHP: {}".format(s1_combat_data.hpmax))
 		print("DEBUG S1 HP: {}".format(s1_combat_data.hp))
 		print("DEBUG S1 HSAP: {}".format(s1_combat_data.hardened_sap))
+		print("DEBUG S1 SAP: {}".format(s1_combat_data.sap))
 		#print("DEBUG S1 HUE: {}".format(s1_combat_data.hue.str_name))
 		print("DEBUG S1 BRAIN: {}".format(s1_combat_data.brain.id_brain))
 		print("DEBUG S1 MOXIE: {}".format(s1_combat_data.moxie))
@@ -2794,6 +2795,7 @@ async def battle_slimeoids(id_s1, id_s2, channel, battle_type):
 		print("DEBUG S2 MAXHP: {}".format(s2_combat_data.hpmax))
 		print("DEBUG S2 HP: {}".format(s2_combat_data.hp))
 		print("DEBUG S2 HSAP: {}".format(s2_combat_data.hardened_sap))
+		print("DEBUG S2 SAP: {}".format(s2_combat_data.sap))
 		#print("DEBUG S2 HUE: {}".format(s2_combat_data.hue.str_name))
 		print("DEBUG S2 BRAIN: {}".format(s2_combat_data.brain.id_brain))
 		print("DEBUG S2 MOXIE: {}".format(s2_combat_data.moxie))
@@ -3206,6 +3208,7 @@ def apply_item_effects(combat_data, enemy_combat_data):
 	held_item_data_props = held_item_data.item_props
 	
 	statchoice = 0
+	sap_hardened = -1
 	stat = ""
 	
 	held_item_type = held_item_data.item_props.get("id_item")
@@ -3220,7 +3223,7 @@ def apply_item_effects(combat_data, enemy_combat_data):
 		combat_data.grit += 1
 		
 	elif held_item_type == ewcfg.item_id_luckyclover:
-		combat_data.held_item_status = "lucky" #TODO: make it give better sap rolls, cut floor of sap rolls at the midpoint
+		combat_data.held_item_status = "lucky"
 	
 	elif held_item_type == ewcfg.item_id_warhorn:
 		combat_data.moxie += 1
@@ -3246,7 +3249,6 @@ def apply_item_effects(combat_data, enemy_combat_data):
 		combat_data.moxie += 1
 		combat_data.grit += 1
 		combat_data.chutzpah += 1
-		combat_data.hardened_sap += 5
 	
 	elif held_item_type in ewcfg.slimeoid_brainscrambler_held_item_ids:
 		new_brain_type = held_item_data_props.get("subcontext")
@@ -3266,10 +3268,12 @@ def apply_item_effects(combat_data, enemy_combat_data):
 
 	# items that don't deactivate, immediately get a turn count of -1
 	elif held_item_type == ewcfg.item_id_portablerefrigerator:
-		combat_data.hardened_sap += 2
+		sap_hardened = min(2, combat_data.grit - combat_data.hardened_sap)
+		combat_data.hardened_sap += sap_hardened
 
 	elif held_item_type == ewcfg.item_id_anarchistsrefrigerator:
-		combat_data.hardened_sap += 10
+		sap_hardened = min(5, combat_data.grit - combat_data.hardened_sap)
+		combat_data.hardened_sap += sap_hardened
 		combat_data.item_active_turns = -1
 
 	elif held_item_type == ewcfg.item_id_policeradio:
@@ -3296,6 +3300,12 @@ def apply_item_effects(combat_data, enemy_combat_data):
 	
 	if statchoice > 0:
 		response += " **It's {} was increased by 2!**".format(stat)
+	
+	if sap_hardened >= 0:
+		if sap_hardened == 0:
+			response += " The {} failed to harden any sap...".format(held_item_data_props['str_name'])
+		if sap_hardened > 0:
+			response += " The {} hardened {} sap!".format(held_item_data_props['str_name'], sap_hardened)
 
 	if held_item_type in ewcfg.slimeoid_reusable_held_item_ids:
 		combat_data.held_item_active = 0 # item activation gets set back to neutral state
@@ -3348,7 +3358,6 @@ def remove_item_effects(combat_data, enemy_combat_data):
 		combat_data.moxie -= 1
 		combat_data.grit -= 1
 		combat_data.chutzpah -= 1
-		# Don't bother lowering its hsap back down
 	
 	elif held_item_type in ewcfg.slimeoid_brainscrambler_held_item_ids:
 		combat_data.brain = ewcfg.brain_map.get(combat_data.slimeoid.ai)
