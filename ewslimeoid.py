@@ -895,8 +895,15 @@ class EwSlimeoidCombatData:
 		# apply damage
 		self.hp -= damage
 		hp = self.hp
-		hpmax = self.hpmax
+		
+		if enemy_combat_data.held_item_status == "berserker":
+			damage = int(damage * 1.3)
+			enemy_combat_data.hp -= int(enemy_combat_data.hpmax * 0.15)
+			enemy_combat_data.hp = enemy_combat_data.hp if enemy_combat_data.hp >= 1 else 1
 
+
+		#print("DAMAGE: {}".format(damage))
+		
 		# crush sap on physical attacks only
 		sap_crush = 0
 		if in_range:
@@ -994,17 +1001,14 @@ class EwSlimeoidCombatData:
 		if enemy_combat_data.analogous != "":
 			enemy_combat_data.grit -= 2
 			enemy_combat_data.analogous = ""
-			print("GRIT RESET")
 			
 		if enemy_combat_data.splitcomplementary_special != "":
 			self.chutzpah -= 2
 			enemy_combat_data.splitcomplementary_special = ""
-			print("CHUTZ RESET")
 
 		if enemy_combat_data.splitcomplementary_physical != "":
 			self.moxie -= 2
 			enemy_combat_data.splitcomplementary_physical = ""
-			print("MOX RESET")
 		
 
 """
@@ -2777,8 +2781,11 @@ async def battle_slimeoids(id_s1, id_s2, channel, battle_type):
 		# track attack and passive slimeoid damage to skew randomness for item activation at the end of a turn
 		active_damage = 0
 		passive_damage = 0
-
+		
 		print("==================")
+		print("FIRST TURN: {}".format(first_turn))
+		print("==================")
+		print("DEBUG S1 NAME: {}".format(s1_combat_data.name))
 		print("DEBUG S1 MAXHP: {}".format(s1_combat_data.hpmax))
 		print("DEBUG S1 HP: {}".format(s1_combat_data.hp))
 		print("DEBUG S1 HSAP: {}".format(s1_combat_data.hardened_sap))
@@ -2792,6 +2799,7 @@ async def battle_slimeoids(id_s1, id_s2, channel, battle_type):
 		print("DEBUG S1 IAT: {}".format(s1_combat_data.item_active_turns))
 		print("DEBUG S1 STATUS: {}".format(s1_combat_data.held_item_status))
 		print("==================")
+		print("DEBUG S2 NAME: {}".format(s2_combat_data.name))
 		print("DEBUG S2 MAXHP: {}".format(s2_combat_data.hpmax))
 		print("DEBUG S2 HP: {}".format(s2_combat_data.hp))
 		print("DEBUG S2 HSAP: {}".format(s2_combat_data.hardened_sap))
@@ -2805,7 +2813,6 @@ async def battle_slimeoids(id_s1, id_s2, channel, battle_type):
 		print("DEBUG S2 IAT: {}".format(s2_combat_data.item_active_turns))
 		print("DEBUG S2 STATUS: {}".format(s2_combat_data.held_item_status))
 		print("==================")
-
 
 		# obtain action and how much sap to spend on it for both slimeoids
 		active_strat, active_sap_spend = active_data.brain.get_strat(combat_data = active_data, active = True, in_range = in_range, first_turn = first_turn)
@@ -3031,11 +3038,10 @@ async def battle_slimeoids(id_s1, id_s2, channel, battle_type):
 				await ewutils.send_message(client, channel, response)
 				await asyncio.sleep(1)
 		
-		if active_damage > 0:
-			print("ACTIVE DAMAGE RATIO: {}".format(active_data.hp/active_damage))
-		if passive_damage > 0:
-			print("PASSIVE DAMAGE RATIO: {}".format(passive_data.hp/passive_damage))
-			
+		# if active_damage > 0:
+		# 	print("ACTIVE DAMAGE RATIO: {}".format(active_data.hp/active_damage))
+		# if passive_damage > 0:
+		# 	print("PASSIVE DAMAGE RATIO: {}".format(passive_data.hp/passive_damage))
 
 		if s1_combat_data.item_active_turns > 0:
 			s1_combat_data.item_active_turns -= 1
@@ -3138,8 +3144,7 @@ def calc_item_activation(combat_data=None, hp=None, damage=None, condition=None)
 		
 		print("CALC IN PROGRESS")
 		
-		print(trigger_condition)
-		print(hp)
+		#print(hp)
 		
 		if hp is not None and damage is not None and condition is None:
 			if hp > 0:
@@ -3289,11 +3294,11 @@ def apply_item_effects(combat_data, enemy_combat_data):
 		combat_data.item_active_turns = -1
 		
 	elif held_item_type == ewcfg.item_id_staydeadshalo:
-		enemy_combat_data.hp = max(1, int(enemy_combat_data.hp * 0.5))
+		enemy_combat_data.hp = max(1, int(enemy_combat_data.hp * 0.3))
 		combat_data.item_active_turns = -1
 		
 	elif held_item_type == ewcfg.item_id_berserkergene:
-		combat_data.held_item_status = "berserker" #TODO: make it do 30% more damage but you lose 10% health
+		combat_data.held_item_status = "berserker" 
 		combat_data.item_active_turns = -1
 
 	response = ("\n" + held_item_data_props['str_activate'].format(combat_data.name))

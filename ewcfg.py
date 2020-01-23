@@ -2714,13 +2714,13 @@ item_list = [
 			"4leafclover"
 		],
 		str_name = "Lucky Clover",
-		str_desc = "An item to be held by slimeoids. Has a small chance to give your slimeoid better sap rolls for 10 turns.\nIt's a small four-leaf clover, contained in a tiny plastic baggie.",
+		str_desc = "An item to be held by slimeoids. Has a chance to give your slimeoid higher sap rolls for 20 turns.\nIt's a small four-leaf clover, contained in a tiny plastic baggie.",
 		vendors=[vendor_arena],
 		price=40,
 		str_activate = "**{} dons its Lucky Clover! Its imbued with a newfound sense of fortune!**",
 		str_deactivate = "**{}'s Lucky Clover falls off its body. It doesn't feel very lucky anymore...**",
-		turn_count = 10,
-		trigger_condition = trigger_raredamage
+		turn_count = 20,
+		trigger_condition = trigger_uncommondamage
 	),
 	EwSlimeoidHeldItem(
 		id_item = item_id_warhorn,
@@ -2783,7 +2783,7 @@ item_list = [
 			"ghost halo"
 		],
 		str_name = "Staydead's Halo",
-		str_desc = "An item to be held by slimeoids. If the slimeoid holding this gets one-shot, it will live at 1 HP, and !haunt the opposing slimeoid, reducing their HP by 50%.\nIt's a halo, made out of pure, hardened negaslime.",
+		str_desc = "An item to be held by slimeoids. If the slimeoid holding this gets one-shot, it will live at 1 HP, and !haunt the opposing slimeoid for a large chunk of its HP.\nIt's a halo, made out of pure, hardened negaslime.",
 		vendors=[vendor_arena],
 		price=50,
 		str_activate = "**Oh the humanity! {} just barely clings onto its Staydead's Halo! It haunts some of its opponent's HP!**",
@@ -2801,7 +2801,7 @@ item_list = [
 			"berserk"
 		],
 		str_name = "Berserker Gene",
-		str_desc = "An item to be held by slimeoids. While holding this item, your slimeoid's attacks will do 25% more damage, but at the cost of 10% of its health.\nIt's a set of red chains which goes around your slimeoid's neck. You're not sure where the name comes from.",
+		str_desc = "An item to be held by slimeoids. While holding this item, your slimeoid's attacks will do 25% more damage, but at the cost of some of its health.\nIt's a set of red chains which goes around your slimeoid's neck. You're not sure where the name comes from.",
 		vendors=[vendor_arena],
 		price=50,
 		str_activate = "**{}'s Berserker Gene glows with a red aura!**",
@@ -2831,14 +2831,14 @@ item_list = [
 		id_item = item_id_moxiemegameal,
 		alias = [
 			"mmm",
-			"moxiemegameal",
+			"mightymoxiemeal",
 		],
-		str_name = "Moxie Mega Meal",
+		str_name = "Mighty Moxie Meal",
 		str_desc = "An item to be held by slimeoids. Has a chance to increase moxie by 1 for 10 turns.\nIt's a brown paper bag with a cheeseburger, large fry, and 6-piece box of chicken nuggets inside.",
 		vendors=[vendor_arena],
 		price=30,
-		str_activate = "**{} chews on its Moxie Mega Meal! Its moxie goes up by 1!**",
-		str_deactivate = "**{} has fully digested its Moxie Mega Meal. Its moxie returns to normal.**",
+		str_activate = "**{} chews on its Mighty Moxie Meal! Its moxie goes up by 1!**",
+		str_deactivate = "**{} has fully digested its Mighty Moxie Meal. Its moxie returns to normal.**",
 		turn_count = 10,
 		trigger_condition = trigger_uncommondamage,
 	),
