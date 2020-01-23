@@ -878,6 +878,7 @@ cmd_undress_slimeoid = cmd_prefix + 'undressslimeoid'
 cmd_undress_slimeoid_alt1 = cmd_prefix + 'undecorateslimeoid'
 cmd_equip_slimeoid = cmd_prefix + 'equipslimeoid'
 cmd_unequip_slimeoid = cmd_prefix + 'unequipslimeoid'
+cmd_trade_in_clout = cmd_prefix + 'tradein'
 
 cmd_add_quadrant = cmd_prefix + "addquadrant"
 cmd_get_quadrants = cmd_prefix + "quadrants"
@@ -6913,14 +6914,15 @@ food_list = [
 		vendors=[vendor_greencakecafe]
 	),
 	EwFood(
-		id_food = "juicebox",
+		id_food = "direapplefrickenergy",
 		alias = [
 			"juice",
 			"appyjuice",
+			"frickenergy",
 		],
 		recover_hunger=10,
 		price=1,
-		str_name = "Juice Box",
+		str_name = "Dire Apple FRICK Energy",
 		str_eat = "*siiiiiip*, Ahhh, that's the stuff. You drink through the entire juice box in one go.",
 		str_desc = "A small rectangular box of apple juice. Suitable for children, and perhaps small slimeoids.",
 		vendors=[vendor_greencakecafe, vendor_beachresort, vendor_bar, vendor_pizzahut, vendor_kfc, vendor_tacobell]
@@ -14005,7 +14007,6 @@ for hue in hue_list:
 
 	for alias in hue.alias:
 		hue_map[alias] = hue# A map of id_hue to EwHue objects.
-		
 
 # Things a slimeoid might throw
 thrownobjects_list = [

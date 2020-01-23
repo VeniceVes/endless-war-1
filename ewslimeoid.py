@@ -3037,11 +3037,6 @@ async def battle_slimeoids(id_s1, id_s2, channel, battle_type):
 				response = passive_data.harden_sap(passive_dos)
 				await ewutils.send_message(client, channel, response)
 				await asyncio.sleep(1)
-		
-		# if active_damage > 0:
-		# 	print("ACTIVE DAMAGE RATIO: {}".format(active_data.hp/active_damage))
-		# if passive_damage > 0:
-		# 	print("PASSIVE DAMAGE RATIO: {}".format(passive_data.hp/passive_damage))
 
 		if s1_combat_data.item_active_turns > 0:
 			s1_combat_data.item_active_turns -= 1
@@ -3734,7 +3729,6 @@ async def unequipslimeoid(cmd):
 		
 		
 	await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
-		
 
 async def unbottleslimeoid(cmd):
 	user_data = EwUser(member = cmd.message.author)
@@ -3961,3 +3955,86 @@ def find_slimeoid(slimeoid_search=None, id_user=None, id_server=None):
 		ewutils.databaseClose(conn_info)
 
 	return slimeoid_sought
+
+# Trade in clout for held items.
+async def trade_in_clout(cmd):
+	user_data = EwUser(member = cmd.message.author)
+	market_data = EwMarket(id_server = cmd.message.server.id)
+	poi = ewmap.fetch_poi_if_coordless(cmd.message.channel.name)
+	slimeoid = EwSlimeoid(member=cmd.message.author)
+	clout = 0
+	
+	if slimeoid.life_state != ewcfg.slimeoid_state_none:
+		clout = slimeoid.clout 
+
+	if poi is None or len(poi.vendors) == 0:
+		# Only allowed in the food court.
+		response = "There’s nothing to buy here. If you want to purchase some items, go to a sub-zone with a vendor in it, like the food court, the speakeasy, or the bazaar."
+	else:
+		value = ewutils.flattenTokenListToString(cmd.tokens[1:])
+		#if cmd.tokens_count > 1:
+		#	value = cmd.tokens[1]
+		#	value = value.lower()
+
+		item = ewcfg.item_map.get(value)
+		item_type = ewcfg.it_item
+		if item != None:
+			item_id = item.id_item
+			name = item.str_name
+			
+			context = item.context
+			if context != ewcfg.context_slimeoidhelditem:
+				response = "That's not something you can trade clout for. Maybe try **!order**ing it instead. Checking the !menu couldn't hurt either."
+				return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
+
+			
+			item_type = item.item_type
+			# Gets a vendor that the item is available and the player currently located in
+			try:
+				current_vendor = (set(item.vendors).intersection(set(poi.vendors))).pop()
+			except:
+				current_vendor = None
+
+			# Check if the item is available in the current bazaar item rotation
+			if current_vendor == ewcfg.vendor_bazaar:
+				if item_id not in market_data.bazaar_wares.values():
+					current_vendor = None
+
+			if current_vendor is None or len(current_vendor) < 1:
+				response = "Check the {} for a list of items you can {}.".format(ewcfg.cmd_menu, ewcfg.cmd_trade_in_clout)
+
+			else:
+				response = ""
+
+				value = item.price
+
+				if poi.is_subzone:
+					district_data = EwDistrict(district = poi.mother_district, id_server = cmd.message.server.id)
+				else:
+					district_data = EwDistrict(district = poi.id_poi, id_server = cmd.message.server.id)
+
+				value = int(value)
+
+				if value > clout:
+					# Not enough clout.
+					response = "You need {:,} clout to trade for a {}, and you only have {:,}. Try winning some slimeoid battles first.".format(value, name, clout)
+				else:
+					slimeoid.clout -= value
+
+					item_props = ewitem.gen_item_props(item)
+					
+					ewitem.item_create(
+						item_type = item_type,
+						id_user = cmd.message.author.id,
+						id_server = cmd.message.server.id,
+						item_props = item_props
+					)
+
+					response = "You exchange {:,} clout for a shiny new {} from {}.".format(value, item.str_name, current_vendor)
+					slimeoid.persist()
+
+		else:
+			response = "That's not something you can trade clout for. Maybe try **!order**ing it instead. Checking the !menu couldn't hurt either."
+
+	# Send the response to the player.
+	await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))

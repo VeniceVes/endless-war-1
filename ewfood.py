@@ -187,6 +187,8 @@ async def order(cmd):
 	user_data = EwUser(member = cmd.message.author)
 	market_data = EwMarket(id_server = cmd.message.server.id)
 	poi = ewmap.fetch_poi_if_coordless(cmd.message.channel.name)
+	
+	context = ""
 
 	if poi is None or len(poi.vendors) == 0:
 		# Only allowed in the food court.
@@ -204,6 +206,13 @@ async def order(cmd):
 		if item != None:
 			item_id = item.id_item
 			name = item.str_name
+			
+			if item.context != None:
+				context = item.context
+				
+				if context == ewcfg.context_slimeoidhelditem:
+					response = "Sad as it seems, you can't buy that item with slime. Try trading clout for it with **!tradein**."
+					return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
 
 		# Finds the item if it's an EwFood item.
 		if item == None:
