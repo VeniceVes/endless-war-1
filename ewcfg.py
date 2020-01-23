@@ -1192,7 +1192,7 @@ cd_boombust = 22
 #For possible time limit on russian roulette
 cd_rr = 600
 #slimeoid downtime after a defeat
-cd_slimeoiddefeated = 300
+cd_slimeoiddefeated = 5
 cd_scavenge = 0
 soft_cd_scavenge = 15 # Soft cooldown on scavenging
 cd_enlist = 60
@@ -2784,6 +2784,8 @@ item_list = [
 		],
 		str_name = "Staydead's Halo",
 		str_desc = "An item to be held by slimeoids. If the slimeoid holding this gets one-shot, it will live at 1 HP, and !haunt the opposing slimeoid, reducing their HP by 50%.\nIt's a halo, made out of pure, hardened negaslime.",
+		vendors=[vendor_arena],
+		price=50,
 		str_activate = "**Oh the humanity! {} just barely clings onto its Staydead's Halo! It haunts some of its opponent's HP!**",
 		str_deactivate = "**{}'s Staydead's Halo shatters into a thousand tiny pieces, unceremoniously, like a Cadillac with 80,000 miles on the motor.**",
 		turn_count = 0, # never deactivates
@@ -2817,11 +2819,11 @@ item_list = [
 			"mega stone"
 		],
 		str_name = "Elephant's Foot",
-		str_desc = "An item to be held by slimeoids. If your slimeoid gets hit for massive damage, it will undergo a **Mega Mutation**, boosting all of its stats by 1, as well as hardening 1 sap, for 15 turns.\nIt's a chunk of radioactive toxic sluge. Just looking at it makes you feel like you're going to die.",
+		str_desc = "An item to be held by slimeoids. If your slimeoid gets hit for massive damage, it will undergo a **Mega Mutation**, boosting all of its stats by 1, as well as hardening 5 sap, for 15 turns.\nIt's a chunk of radioactive toxic sluge. Just looking at it makes you feel like you're going to die.",
 		vendors=[vendor_arena],
 		price=70,
-		str_activate = "**Holding onto it's Elephant's Foot for dear life, {} emerges from a flash of blinding light!",
-		str_deactivate = "**{}'s Elephant's Foot dissolves into nothingness, causing it to devolve back into its normal state.",
+		str_activate = "**Holding onto it's Elephant's Foot for dear life,** {} **emerges from a flash of blinding light!**",
+		str_deactivate = "**{}'s Elephant's Foot dissolves into nothingness, causing it to devolve back into its normal state.**",
 		turn_count = 15,
 		trigger_condition = trigger_massivedamage
 	),

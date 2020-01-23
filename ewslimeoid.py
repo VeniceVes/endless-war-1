@@ -779,7 +779,7 @@ class EwSlimeoidCombatData:
 		
 		color_matchup = ewcfg.hue_neutral
 		# get color matchups
-		if self.hue is not None:
+		if self.hue is not None and enemy_combat_data.hue is not None:
 			color_matchup = self.hue.effectiveness.get(enemy_combat_data.hue.id_hue)
 
 		if color_matchup is None:
@@ -918,13 +918,16 @@ class EwSlimeoidCombatData:
 
 				if self.splitcomplementary_physical != "":
 					response += " {}".format(self.splitcomplementary_physical)
+					calc_item_activation(combat_data=self, condition='weakpointhit')
 
 			else:
 				if self.weakness != "":
 					response = self.weakness
+					calc_item_activation(combat_data=self, condition='weakpointhit')
 
 				if self.splitcomplementary_special != "":
 					response += " {}".format(self.splitcomplementary_special)
+					calc_item_activation(combat_data=self, condition='weakpointhit')
 
 
 			if hp/damage > 10:
@@ -940,7 +943,7 @@ class EwSlimeoidCombatData:
 
 			if sap_crush > 0:
 				response += " (-{} hardened sap)".format(sap_crush)
-							
+
 		return response
 
 	# obtain movement response
@@ -2774,18 +2777,12 @@ async def battle_slimeoids(id_s1, id_s2, channel, battle_type):
 		# track attack and passive slimeoid damage to skew randomness for item activation at the end of a turn
 		active_damage = 0
 		passive_damage = 0
-			
-		# apply item effects
-		await check_for_item_effects(s1_combat_data, s2_combat_data, client, channel)
-		await check_for_item_effects(s2_combat_data, s1_combat_data, client, channel)
-
-		if s1_combat_data.item_active_turns > 0:
-			s1_combat_data.item_active_turns -= 1
-		if s2_combat_data.item_active_turns > 0:
-			s2_combat_data.item_active_turns -= 1
 
 		print("==================")
-		print("DEBUG S1 HUE: {}".format(s1_combat_data.hue.str_name))
+		print("DEBUG S1 MAXHP: {}".format(s1_combat_data.hpmax))
+		print("DEBUG S1 HP: {}".format(s1_combat_data.hp))
+		print("DEBUG S1 HSAP: {}".format(s1_combat_data.hardened_sap))
+		#print("DEBUG S1 HUE: {}".format(s1_combat_data.hue.str_name))
 		print("DEBUG S1 BRAIN: {}".format(s1_combat_data.brain.id_brain))
 		print("DEBUG S1 MOXIE: {}".format(s1_combat_data.moxie))
 		print("DEBUG S1 CHUTZ: {}".format(s1_combat_data.chutzpah))
@@ -2794,7 +2791,10 @@ async def battle_slimeoids(id_s1, id_s2, channel, battle_type):
 		print("DEBUG S1 IAT: {}".format(s1_combat_data.item_active_turns))
 		print("DEBUG S1 STATUS: {}".format(s1_combat_data.held_item_status))
 		print("==================")
-		print("DEBUG S2 HUE: {}".format(s2_combat_data.hue.str_name))
+		print("DEBUG S2 MAXHP: {}".format(s2_combat_data.hpmax))
+		print("DEBUG S2 HP: {}".format(s2_combat_data.hp))
+		print("DEBUG S2 HSAP: {}".format(s2_combat_data.hardened_sap))
+		#print("DEBUG S2 HUE: {}".format(s2_combat_data.hue.str_name))
 		print("DEBUG S2 BRAIN: {}".format(s2_combat_data.brain.id_brain))
 		print("DEBUG S2 MOXIE: {}".format(s2_combat_data.moxie))
 		print("DEBUG S2 CHUTZ: {}".format(s2_combat_data.chutzpah))
@@ -2943,7 +2943,13 @@ async def battle_slimeoids(id_s1, id_s2, channel, battle_type):
 
 		# if the active slimeoid's attack killed the passive slimeoid
 		if passive_data.hp <= 0:
-			break
+			
+			# Check if oneshot items should activate
+			if (passive_damage / passive_data.hpmax >= 1) and (passive_data.held_item_active != -1):
+				calc_item_activation(combat_data=s1_combat_data, condition='oneshot')
+				await check_for_item_effects(s1_combat_data, s2_combat_data, client, channel)
+			else:
+				break
 
 		if passive_strat == ewcfg.slimeoid_strat_attack:
 			passive_dos = passive_data.attempt_action(strat = passive_strat, sap_spend = passive_sap_spend, in_range = in_range)
@@ -3027,10 +3033,20 @@ async def battle_slimeoids(id_s1, id_s2, channel, battle_type):
 			print("ACTIVE DAMAGE RATIO: {}".format(active_data.hp/active_damage))
 		if passive_damage > 0:
 			print("PASSIVE DAMAGE RATIO: {}".format(passive_data.hp/passive_damage))
+			
+
+		if s1_combat_data.item_active_turns > 0:
+			s1_combat_data.item_active_turns -= 1
+		if s2_combat_data.item_active_turns > 0:
+			s2_combat_data.item_active_turns -= 1
 				
 		# have a chance to activate the held item of a slimeoid
-		calc_item_activation(active_data, active_data.hp, active_damage)
-		calc_item_activation(passive_data, passive_data.hp, passive_damage)
+		calc_item_activation(combat_data=active_data, hp=active_data.hp, damage=active_damage)
+		calc_item_activation(combat_data=passive_data, hp=passive_data.hp, damage=passive_damage)
+
+		# apply item effects
+		await check_for_item_effects(s1_combat_data, s2_combat_data, client, channel)
+		await check_for_item_effects(s2_combat_data, s1_combat_data, client, channel)
 
 		# re-fetch slimeoid data
 		challenger_slimeoid = EwSlimeoid(id_slimeoid = id_s2)
@@ -3049,6 +3065,10 @@ async def battle_slimeoids(id_s1, id_s2, channel, battle_type):
 
 	# the challengee has lost
 	if s1_combat_data.hp <= 0:
+
+		calc_item_activation(combat_data=s1_combat_data, condition='loss')
+		await check_for_item_effects(s1_combat_data, s2_combat_data, client, channel)
+		
 		result = -1
 		response = "\n" + s1_combat_data.legs.str_defeat.format(
 			slimeoid_name=s1_combat_data.name
@@ -3075,6 +3095,10 @@ async def battle_slimeoids(id_s1, id_s2, channel, battle_type):
 		await asyncio.sleep(2)
 	# the challenger has lost
 	else:
+
+		calc_item_activation(combat_data=s2_combat_data, condition='loss')
+		await check_for_item_effects(s2_combat_data, s1_combat_data, client, channel)
+		
 		result = 1
 		response = "\n" + s2_combat_data.legs.str_defeat.format(
 			slimeoid_name=s2_combat_data.name
@@ -3101,7 +3125,7 @@ async def battle_slimeoids(id_s1, id_s2, channel, battle_type):
 		await asyncio.sleep(2)
 	return result
 
-def calc_item_activation(combat_data, hp, damage):
+def calc_item_activation(combat_data=None, hp=None, damage=None, condition=None):
 	if combat_data.slimeoid.held_item != "" and combat_data.held_item_active != -1:
 		held_item_data = EwItem(id_item=combat_data.slimeoid.held_item)
 		held_item_data_props = held_item_data.item_props
@@ -3112,23 +3136,52 @@ def calc_item_activation(combat_data, hp, damage):
 		
 		print("CALC IN PROGRESS")
 		
-		if trigger_condition == ewcfg.trigger_uncommondamage or trigger_condition == ewcfg.trigger_raredamage:
-			if damage == 0:
-				mode = 5.5  # midpoint is used if no damage occurs that turn
-			else:
-				# skew the odds below the midpoint based on how much damage was taken.
-				# if the mode is too high then bring it down to the midpoint.
-				mode = ((4.5 + (hp/damage)) / 5.5) if (mode < 5.5) else 5.5
+		print(trigger_condition)
+		print(hp)
 		
-			if trigger_condition == ewcfg.trigger_uncommondamage:
-				if int(random.triangular(1, 10, mode)) <= 2:
+		if hp is not None and damage is not None and condition is None:
+			if hp > 0:
+				if trigger_condition == ewcfg.trigger_uncommondamage or trigger_condition == ewcfg.trigger_raredamage:
+					if damage == 0:
+						mode = 5.5  # midpoint is used if no damage occurs that turn
+					else:
+						# skew the odds below the midpoint based on how much damage was taken.
+						# if the mode is too high then bring it down to the midpoint.
+						mode = ((4.5 + (hp / damage)) / 5.5) if (((4.5 + (hp / damage)) / 5.5) < 5.5) else 5.5
+
+					if trigger_condition == ewcfg.trigger_uncommondamage:
+						if int(random.triangular(1, 10, mode)) <= 2:
+							combat_data.held_item_active = 1
+					elif trigger_condition == ewcfg.trigger_raredamage:
+						if int(random.triangular(1, 10, mode)) == 1:
+							combat_data.held_item_active = 1
+							
+				elif damage > 0 and trigger_condition == ewcfg.trigger_massivedamage:
+					if (hp / damage <= 2):
+						combat_data.held_item_active = 1
+				elif trigger_condition == ewcfg.trigger_lowhealth and (hp / combat_data.hpmax <= 0.2):
 					combat_data.held_item_active = 1
-					combat_data.item_active_turns = int(held_item_data_props['turn_count'])
-			elif trigger_condition == ewcfg.trigger_raredamage:
-				if int(random.triangular(1, 10, mode)) == 1:
+				elif trigger_condition == ewcfg.trigger_none:
 					combat_data.held_item_active = 1
-					combat_data.item_active_turns = int(held_item_data_props['turn_count'])
-				
+			
+			# Passive slimeoids activate oneshot items earlier. Active slimeoids activate them here, near the end of the turn.
+			if (damage / combat_data.hpmax >= 1):
+				condition = 'oneshot'
+			
+		# Some items should turn on based on preset conditions unrelated to health or damage values	
+		if condition is not None:
+			if trigger_condition == ewcfg.trigger_weakpointhit and condition == 'weakpointhit':
+				combat_data.held_item_active = 1
+			if trigger_condition == ewcfg.trigger_loss and condition == 'loss':
+				combat_data.held_item_active = 1
+			
+			if trigger_condition == ewcfg.trigger_oneshot and condition == 'oneshot':
+				combat_data.held_item_active = 1
+				combat_data.hp = 1
+			
+			
+	if combat_data.held_item_active == 1:
+		combat_data.item_active_turns = int(held_item_data_props['turn_count'])
 
 async def check_for_item_effects(combat_data, enemy_combat_data, client, channel):
 	if combat_data.held_item != "":
@@ -3189,11 +3242,11 @@ def apply_item_effects(combat_data, enemy_combat_data):
 			combat_data.held_item_status = "chutzpahincrease_plantb"
 			
 	elif held_item_type == ewcfg.item_id_elephantsfoot:
-		combat_data.name = "**Mega** {}".format(combat_data.name)
+		combat_data.name = "Mega-{}".format(combat_data.name)
 		combat_data.moxie += 1
 		combat_data.grit += 1
 		combat_data.chutzpah += 1
-		combat_data.hardened_sap += 1
+		combat_data.hardened_sap += 5
 	
 	elif held_item_type in ewcfg.slimeoid_brainscrambler_held_item_ids:
 		new_brain_type = held_item_data_props.get("subcontext")
@@ -3217,21 +3270,27 @@ def apply_item_effects(combat_data, enemy_combat_data):
 
 	elif held_item_type == ewcfg.item_id_anarchistsrefrigerator:
 		combat_data.hardened_sap += 10
+		combat_data.item_active_turns = -1
 
 	elif held_item_type == ewcfg.item_id_policeradio:
-		owner_data = EwUser(id_user=combat_data.owner.id_user)
+		owner_data = EwUser(id_user=combat_data.owner.id_user, id_server=combat_data.owner.id_server)
+		
 		owner_data.time_expirpvp = ewutils.calculatePvpTimer(owner_data.time_expirpvp, (int(time.time()) + ewcfg.time_pvp_policeradio))
+
 		owner_data.persist()
+		combat_data.item_active_turns = -1
 		
 	elif held_item_type == ewcfg.item_id_highfructoseslimesyrup:
 		combat_data.hp += int(combat_data.hpmax * 0.2)
+		combat_data.item_active_turns = -1
 		
 	elif held_item_type == ewcfg.item_id_staydeadshalo:
-		combat_data.hp = 1
-		enemy_combat_data.hp = max(1, int(enemy_combat_data.hp * 0.75))
+		enemy_combat_data.hp = max(1, int(enemy_combat_data.hp * 0.5))
+		combat_data.item_active_turns = -1
 		
 	elif held_item_type == ewcfg.item_id_berserkergene:
 		combat_data.held_item_status = "berserker" #TODO: make it do 30% more damage but you lose 10% health
+		combat_data.item_active_turns = -1
 
 	response = ("\n" + held_item_data_props['str_activate'].format(combat_data.name))
 	
@@ -3274,12 +3333,15 @@ def remove_item_effects(combat_data, enemy_combat_data):
 		if combat_data.held_item_status == "moxieincrease_plantb":
 			stat = "Moxie"
 			combat_data.moxie -= 2
+			combat_data.held_item_status = ""
 		elif combat_data.held_item_status == "gritincrease_plantb":
 			stat = "Grit"
 			combat_data.grit -= 2
+			combat_data.held_item_status = ""
 		elif combat_data.held_item_status == "chutzpahincrease_plantb":
 			stat = "Chutzpah"
 			combat_data.chutzpah -= 2
+			combat_data.held_item_status = ""
 
 	elif held_item_type == ewcfg.item_id_elephantsfoot:
 		combat_data.name = combat_data.slimeoid.name
