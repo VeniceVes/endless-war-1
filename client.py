@@ -52,6 +52,7 @@ import ewworldevent
 import ewdungeons
 import ewads
 import ewbook
+import ewslimeoidtournament
 import ewdebug
 
 from ewitem import EwItem
@@ -619,7 +620,21 @@ cmd_map = {
 	
 	# flush items and slime from subzones into their mother district
 	ewcfg.cmd_flushsubzones: ewcmd.flush_subzones,
-	
+
+	#slimeoid tournament commands
+	ewcfg.cmd_create_tournament: ewslimeoidtournament.create_tournament,
+	#ewcfg.cmd_start_tournament: ewslimeoidtournament.start_tournament,
+	#ewcfg.cmd_cancel_tournament:
+	#ewcfg.cmd_end_tournament:
+	#ewcfg.cmd_disqualify:
+	#ewcfg.cmd_sign_up:
+	#ewcfg.cmd_tournament_reward:
+	#ewcfg.cmd_opt_out:
+	#ewcfg.cmd_enter_slimeoid:
+	#ewcfg.cmd_contestants:
+	#ewcfg.cmd_order_dye:
+	#ewcfg.cmd_set_bracket_code:
+
 	# Slimernalia
 	# Check your current festivity
 	#ewcfg.cmd_festivity: ewcmd.festivity,

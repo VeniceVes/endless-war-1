@@ -423,3 +423,23 @@ CREATE TABLE book_sales (
 
     PRIMARY KEY (id_book, id_server, id_user)
 );
+
+CREATE TABLE slimeoidtournament (
+	id_server varchar(128) NOT NULL,
+	tournament_status varchar(64) NOT NULL DEFAULT 'SIGNUP',
+	tournament_bracket int NOT NULL DEFAULT '4',
+	contestants int NOT NULL DEFAULT '0',
+	losers_bracket int NOT NULL DEFAULT '0',
+	number_slimeoids int NOT NULL DEFAULT '1',
+	set_length int NOT NULL DEFAULT '3',
+	tournament_items int NOT NULL DEFAULT '1',
+	tournament_steroids int NOT NULL DEFAULT '0',
+	tournament_hues int NOT NULL DEFAULT '1',
+	tournament_candies int NOT NULL DEFAULT '0',
+	tournament_dyes int NOT NULL DEFAULT '1',
+	level_min int NOT NULL DEFAULT '1',
+	level_max int NOT NULL DEFAULT '9',
+	reward int NOT NULL DEFAULT '0',
+
+	PRIMARY KEY (id_server)
+);
