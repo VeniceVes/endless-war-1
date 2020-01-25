@@ -10545,7 +10545,7 @@ poi_list = [
 		],
 		str_name = "an Arsonbrook apartment",
 		str_desc = "",
-		channel = channel_apt_oldnewyonkers,
+		channel = channel_apt_arsonbrook,
 		role = "Arsonbrook Apartments",
 		is_apartment = True,
 		mother_district = poi_id_arsonbrook,
