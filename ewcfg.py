@@ -894,6 +894,21 @@ cmd_remove_offer = cmd_prefix + 'removeoffer'
 cmd_completetrade = cmd_prefix + 'completetrade'
 cmd_canceltrade = cmd_prefix + 'canceltrade'
 
+#Slimeoid Tournament Commands
+cmd_start_tournament = cmd_prefix + 'starttournament'
+cmd_cancel_tournament = cmd_prefix + 'canceltournament'
+cmd_end_tournament = cmd_prefix + 'endtournament'
+cmd_create_tournament = cmd_prefix + 'createtournament'
+cmd_disqualify = cmd_prefix + 'disqualify'
+cmd_sign_up = cmd_prefix + 'signup'
+cmd_tournament_reward = cmd_prefix + 'tournamentreward'
+cmd_opt_out = cmd_prefix + 'optout'
+cmd_enter_slimeoid = cmd_prefix + 'enterslimeoid'
+cmd_contestants = cmd_prefix + 'contestants'
+cmd_order_dye = cmd_prefix + 'orderdye'
+cmd_set_bracket_code = cmd_prefix + 'setbracketcode'
+
+
 #SLIMERNALIA
 cmd_festivity = cmd_prefix + 'festivity'
 
@@ -1657,6 +1672,22 @@ col_contents = "contents"
 
 # Database columns for book sales
 col_bought = "bought"
+
+#Database columns for slimeoid tournaments
+col_tournament_status = "tournament status"
+col_tournament_bracket = "tournament bracket"
+col_contestants = "contestants"
+col_losers_bracket = "losers bracket"
+col_number_slimeoids = "number of slimeoids"
+col_set_length = "set length" #best 2 out of 3, 3 out of 5, etc
+col_tournament_items = "tournament items"
+col_tournament_steroids = "tournament steroids"
+col_tournament_hues = "tournament hues"
+col_tournament_candies = "tournament candies"
+col_tournament_dyes = "tournament dyes"
+col_level_min = "level minimum"
+col_level_max = "level maximum"
+col_reward = "reward"
 
 # Item type names
 it_item = "item"
