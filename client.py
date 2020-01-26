@@ -621,7 +621,7 @@ cmd_map = {
 	ewcfg.cmd_flushsubzones: ewcmd.flush_subzones,
 
 	#slimeoid tournament commands
-	#ewcfg.cmd_create_tournament: ewslimeoid.create_tournament,
+	ewcfg.cmd_create_tournament: ewslimeoid.create_tournament,
 	#ewcfg.cmd_start_tournament: ewslimeoid.start_tournament,
 	#ewcfg.cmd_cancel_tournament:
 	#ewcfg.cmd_end_tournament:

@@ -1680,20 +1680,20 @@ col_contents = "contents"
 col_bought = "bought"
 
 #Database columns for slimeoid tournaments
-col_tournament_status = "tournament status"
-col_tournament_bracket = "tournament bracket"
-col_contestants = "contestants"
-col_losers_bracket = "losers bracket"
-col_number_slimeoids = "number of slimeoids"
-col_set_length = "set length" #best 2 out of 3, 3 out of 5, etc
-col_tournament_items = "tournament items"
-col_tournament_steroids = "tournament steroids"
-col_tournament_hues = "tournament hues"
-col_tournament_candies = "tournament candies"
-col_tournament_dyes = "tournament dyes"
-col_level_min = "level minimum"
-col_level_max = "level maximum"
-col_reward = "reward"
+col_tournament_status = "tournament_status" # what phase is the tournament currently in?
+col_tournament_bracket = "tournament_bracket" # how many players should be allowed to enter? 4? 8? 16?
+col_contestants = "contestants" # how many contestants have signed up?
+col_losers_bracket = "losers_bracket" # should the tournament have a losers bracket?
+col_number_slimeoids = "number_slimeoids" # how many slimeoids should be in a battle?
+col_set_length = "set_length" # how many battles should a set possibly last? best of 3? best of 5? best of 7?
+col_tournament_items = "tournament_items" # are items allowed?
+col_tournament_steroids = "tournament_steroids" # are steroids allowed (always set to OFF, not yet feature complete)
+col_tournament_hues = "tournament_hues" # are hues allowed?
+col_tournament_candies = "tournament_candies" # can you feed your slimeoid during the tournament?
+col_tournament_dyes = "tournament_dyes" # can you dye your slimeoid during the tournament?
+col_level_min = "level_min" # what level should all slimeoids be at the very least?
+col_level_max = "level_max" # what level should all slimeoids be at the very most?
+col_reward = "reward" # what item does the winner get as a reward?
 
 # Item type names
 it_item = "item"
@@ -15593,7 +15593,20 @@ slimeoid_reusable_held_item_ids = [ # used to not remove an item from battle aft
 	item_id_portablerefrigerator
 ]
 
+tournament_phase_signup = "SIGNUP"
+tournament_phase_winners_round_one = "WR1"
+tournament_phase_winners_round_two = "WR2"
+tournament_phase_winners_round_three = "WR3"
+tournament_phase_grand_finals = "GF"
 
+slimeoid_tournament_bracket_codes = {
+	# a set of codes used for bracket assignment in slimeoid tournaments
+	tournament_phase_signup:["NULL"],
+	tournament_phase_winners_round_one:["WR1M1","WR1M2","WR1M3","WR1M4","WR1M5","WR1M6","WR1M7","WR1M8"],
+	tournament_phase_winners_round_two:["WR2M1","WR2M2","WR2M3","WR2M4"],
+	tournament_phase_winners_round_three:["WR3M1","WR3M2"],
+	tournament_phase_grand_finals:["GRANDFINALS"]
+}  
 
 # lists of all the discord server objects served by bot, identified by the server id
 server_list = {}
