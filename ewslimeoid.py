@@ -1032,19 +1032,19 @@ class EwSlimeoidTournament:
 	set_length = 0
 
 	#if items are allowed
-	tournament_items = 0
+	items_allowed = 0
 
 	#if steroids are allowed (always set to 0, work in progress)
-	tournament_steroids = 0
+	steroids_allowed = 0
 
 	#if hues are allowed
-	tournament_hues = 0
+	hues_allowed = 0
 
 	#if candies are allowed
-	tournament_candies = 0
+	candies_allowed = 0
 
 	#if dyes are allowed (note: if hues aren't allowed, then neither are dyes)
-	tournament_dyes = 0
+	dyes_allowed = 0
 
 	#the minimum level a slimeoid can be
 	level_min = 0
@@ -1066,18 +1066,18 @@ class EwSlimeoidTournament:
 				cursor = conn.cursor();
 
 				# Retrieve object
-				cursor.execute("SELECT {tournament_status}, {tournament_bracket}, {contestants}, {losers_bracket}, {number_slimeoids}, {set_length}, {tournament_items}, {tournament_steroids}, {tournament_hues}, {tournament_candies}, {tournament_dyes}, {level_min}, {level_max}, {reward} FROM slimeoidtournaments WHERE id_server = %s".format(
+				cursor.execute("SELECT {tournament_status}, {tournament_bracket}, {contestants}, {losers_bracket}, {number_slimeoids}, {set_length}, {items_allowed}, {steroids_allowed}, {hues_allowed}, {candies_allowed}, {dyes_allowed}, {level_min}, {level_max}, {reward} FROM tournaments WHERE id_server = %s".format(
 					tournament_status = ewcfg.col_tournament_status,
 					tournament_bracket = ewcfg.col_tournament_bracket,
 					contestants = ewcfg.col_contestants,
 					losers_bracket = ewcfg.col_losers_bracket,
 					number_slimeoids = ewcfg.col_number_slimeoids,
 					set_length = ewcfg.col_set_length,
-					tournament_items = ewcfg.col_tournament_items,
-					tournament_steroids = ewcfg.col_tournament_steroids,
-					tournament_hues = ewcfg.col_tournament_hues,
-					tournament_candies = ewcfg.col_tournament_candies,
-					tournament_dyes = ewcfg.col_tournament_dyes,
+					items_allowed = ewcfg.col_items_allowed,
+					steroids_allowed = ewcfg.col_steroids_allowed,
+					hues_allowed = ewcfg.col_hues_allowed,
+					candies_allowed = ewcfg.col_candies_allowed,
+					dyes_allowed = ewcfg.col_dyes_allowed,
 					level_min = ewcfg.col_level_min,
 					level_max = ewcfg.col_level_max,
 					reward = ewcfg.col_reward,
@@ -1093,18 +1093,18 @@ class EwSlimeoidTournament:
 					self.losers_bracket = result[3]
 					self.number_slimeoids = result[4]
 					self.set_length = result[5]
-					self.tournament_items = result[6]
-					self.tournament_steroids = result[7]
-					self.tournament_hues = result[8]
-					self.tournament_candies = result[9]
-					self.tournament_dyes = result[10]
+					self.items_allowed = result[6]
+					self.steroids_allowed = result[7]
+					self.hues_allowed = result[8]
+					self.candies_allowed = result[9]
+					self.dyes_allowed = result[10]
 					self.level_min = result[11]
 					self.level_max = result[12]
 					self.reward = result[13]
 
 				else:
 					# Create a new database entry if the object is missing.
-					cursor.execute("REPLACE INTO slimeoidtournaments(id_server) VALUES(%s)", (id_server, ))
+					cursor.execute("REPLACE INTO tournaments(id_server) VALUES(%s)", (id_server, ))
 
 					conn.commit()
 			finally:
@@ -1120,7 +1120,7 @@ class EwSlimeoidTournament:
 			cursor = conn.cursor();
 
 			# Save the object.
-			cursor.execute("REPLACE INTO slimeoidtournaments ({id_server}, {tournament_status}, {tournament_bracket}, {contestants}, {losers_bracket}, {number_slimeoids}, {set_length}, {tournament_items}, {tournament_steroids}, {tournament_hues}, {tournament_candies}, {tournament_dyes}, {level_min}, {level_max}, {reward}) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)".format(
+			cursor.execute("REPLACE INTO slimeoid_tournaments ({id_server}, {tournament_status}, {tournament_bracket}, {contestants}, {losers_bracket}, {number_slimeoids}, {set_length}, {items_allowed}, {steroid_allowed}, {hues_allowed}, {candies_allowed}, {dyes_allowed}, {level_min}, {level_max}, {reward}) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)".format(
 				id_server = ewcfg.col_id_server,
 				tournament_status = ewcfg.col_tournament_status,
 				tournament_bracket = ewcfg.col_tournament_bracket,
@@ -1128,11 +1128,11 @@ class EwSlimeoidTournament:
 				losers_bracket = ewcfg.col_losers_bracket,
 				number_slimeoids = ewcfg.col_number_slimeoids,
 				set_length = ewcfg.col_set_length,
-				tournament_items = ewcfg.col_tournament_items,
-				tournament_steroids = ewcfg.col_tournament_steroids,
-				tournament_hues = ewcfg.col_tournament_hues,
-				tournament_candies = ewcfg.col_tournament_candies,
-				tournament_dyes = ewcfg.col_tournament_dyes,
+				items_allowed = ewcfg.col_items_allowed,
+				steroid_allowed = ewcfg.col_steroids_allowed,
+				hues_allowed = ewcfg.col_hues_allowed,
+				candies_allowed = ewcfg.col_candies_allowed,
+				dyes_allowed = ewcfg.col_dyes_allowed,
 				level_min = ewcfg.col_level_min,
 				level_max = ewcfg.col_level_max,
 				reward = ewcfg.col_reward,
@@ -1144,11 +1144,11 @@ class EwSlimeoidTournament:
 				self.losers_bracket,
 				self.number_slimeoids,
 				self.set_length,
-				self.tournament_items,
-				self.tournament_steroids,
-				self.tournament_hues,
-				self.tournament_candies,
-				self.tournament_dyes,
+				self.items_allowed,
+				self.steroids_allowed,
+				self.hues_allowed,
+				self.candies_allowed,
+				self.dyes_allowed,
 				self.level_min,
 				self.level_max,
 				self.reward,
@@ -4220,12 +4220,10 @@ async def create_tournament(cmd):
 		tournament_data.number_slimeoids = 1
 		tournament_data.set_length = 3
 		
-		
-		
-		tournament_data.tournament_items = 0
-		tournament_data.tournament_hues = 0
-		tournament_data.tournament_candies = 0
-		tournament_data.tournament_dyes = 0
+		tournament_data.items_allowed = 0
+		tournament_data.hues_allowed = 0
+		tournament_data.candies_allowed = 0
+		tournament_data.dyes_allowed = 0
 		
 		tournament_data.level_min = 1
 		tournament_data.level_max = 99
@@ -4234,7 +4232,7 @@ async def create_tournament(cmd):
 		
 		tournament_data.contestants = 0
 
-		tournament_data.tournament_steroids = 0 # not yet feature complete
+		tournament_data.steroids_allowed = 0 # not yet feature complete
 		tournament_data.persist()
 		
 		response = "Tournament created! Settings have been set to default." #TODO: explain default settings
