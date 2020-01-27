@@ -1679,21 +1679,27 @@ col_contents = "contents"
 # Database columns for book sales
 col_bought = "bought"
 
-#Database columns for slimeoid tournaments
-col_tournament_status = "tournament_status" # what phase is the tournament currently in?
-col_tournament_bracket = "tournament_bracket" # how many players should be allowed to enter? 4? 8? 16?
-col_contestants = "contestants" # how many contestants have signed up?
-col_losers_bracket = "losers_bracket" # should the tournament have a losers bracket?
-col_number_slimeoids = "number_slimeoids" # how many slimeoids should be in a battle?
-col_set_length = "set_length" # how many battles should a set possibly last? best of 3? best of 5? best of 7?
-col_items_allowed = "items_allowed" # are items allowed?
-col_steroids_allowed = "steroids_allowed" # are steroids allowed (always set to OFF, not yet feature complete)
-col_hues_allowed = "hues_allowed" # are hues allowed?
-col_candies_allowed = "candies_allowed" # can you feed your slimeoid during the tournament?
-col_dyes_allowed = "dyes_allowed" # can you dye your slimeoid during the tournament?
-col_level_min = "level_min" # what level should all slimeoids be at the very least?
-col_level_max = "level_max" # what level should all slimeoids be at the very most?
-col_reward = "reward" # what item does the winner get as a reward?
+# Database columns for slimeoid tournaments
+col_tournament_status = "tournament_status" 
+col_tournament_bracket = "tournament_bracket" 
+col_contestants = "contestants" 
+col_losers_bracket = "losers_bracket" 
+col_number_slimeoids = "number_slimeoids" 
+col_set_length = "set_length" 
+col_items_allowed = "items_allowed" 
+col_steroids_allowed = "steroids_allowed" 
+col_hues_allowed = "hues_allowed"
+col_candies_allowed = "candies_allowed" 
+col_dyes_allowed = "dyes_allowed" 
+col_level_min = "level_min" 
+col_level_max = "level_max" 
+col_reward = "reward" 
+
+col_slimeoid_one = "slimeoid_one" 
+col_slimeoid_two = "slimeoid_two" 
+col_slimeoid_three = "slimeoid_three" 
+col_bracket_code = "bracket_code" 
+col_current_wins = "current_wins" 
 
 # Item type names
 it_item = "item"
