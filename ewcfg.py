@@ -1681,7 +1681,7 @@ col_bought = "bought"
 
 # Database columns for slimeoid tournaments
 col_tournament_status = "tournament_status" 
-col_tournament_bracket = "tournament_bracket" 
+col_tournament_bracket_length = "tournament_bracket_length" 
 col_contestants = "contestants" 
 col_losers_bracket = "losers_bracket" 
 col_number_slimeoids = "number_slimeoids" 
@@ -15564,7 +15564,13 @@ zine_commands = [
 	cmd_setpages,
 	cmd_setpages_alt_1,
 	cmd_setpages_alt_2,
-	]
+]
+
+# Commands that are used to enter into a slimeoid tournament
+tournament_entry_commands = [
+	cmd_sign_up,
+	cmd_enter_slimeoid
+]
 
 slimeoid_brainscrambler_held_item_ids = [ # used to see if a brain needs to be changed mid-battle
 	item_id_irritablebrainscrambler,
@@ -15604,14 +15610,19 @@ tournament_phase_winners_round_one = "WR1"
 tournament_phase_winners_round_two = "WR2"
 tournament_phase_winners_round_three = "WR3"
 tournament_phase_grand_finals = "GF"
+tournament_phase_limbo = "LIMBO"
+# not an actual phase, but the associated code is assigned throughout the tournament
+tournament_phase_disqualified = "DISQUALIFIED"
 
 slimeoid_tournament_bracket_codes = {
 	# a set of codes used for bracket assignment in slimeoid tournaments
-	tournament_phase_signup:["NULL"],
+	tournament_phase_signup:["SIGNUP"],
 	tournament_phase_winners_round_one:["WR1M1","WR1M2","WR1M3","WR1M4","WR1M5","WR1M6","WR1M7","WR1M8"],
 	tournament_phase_winners_round_two:["WR2M1","WR2M2","WR2M3","WR2M4"],
 	tournament_phase_winners_round_three:["WR3M1","WR3M2"],
-	tournament_phase_grand_finals:["GRANDFINALS"]
+	tournament_phase_grand_finals:["GRANDFINALS"],
+	tournament_phase_limbo:["LIMBO"],
+	tournament_phase_disqualified:["DISQUALIFIED"]
 }  
 
 # lists of all the discord server objects served by bot, identified by the server id

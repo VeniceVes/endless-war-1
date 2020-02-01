@@ -427,7 +427,7 @@ CREATE TABLE book_sales (
 CREATE TABLE tournaments (
 	id_server varchar(128) NOT NULL,
 	tournament_status varchar(64) NOT NULL DEFAULT '',
-	tournament_bracket int NOT NULL DEFAULT '0',
+	tournament_bracket_length int NOT NULL DEFAULT '0',
 	contestants int NOT NULL DEFAULT '0',
 	losers_bracket int NOT NULL DEFAULT '0',
 	number_slimeoids int NOT NULL DEFAULT '0',

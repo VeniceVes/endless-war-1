@@ -626,10 +626,10 @@ cmd_map = {
 	#ewcfg.cmd_cancel_tournament:
 	#ewcfg.cmd_end_tournament:
 	#ewcfg.cmd_disqualify:
-	#ewcfg.cmd_sign_up:
+	ewcfg.cmd_sign_up: ewslimeoid.sign_up,
 	#ewcfg.cmd_tournament_reward:
 	#ewcfg.cmd_opt_out:
-	#ewcfg.cmd_enter_slimeoid:
+	ewcfg.cmd_enter_slimeoid: ewslimeoid.enter_slimeoid,
 	#ewcfg.cmd_contestants:
 	#ewcfg.cmd_order_dye:
 	#ewcfg.cmd_set_bracket_code:
@@ -1248,6 +1248,8 @@ async def on_message(message):
 				return await ewbook.zine_dm_commands(cmd=cmd_obj)
 			elif poi.is_apartment:
 				return await ewapt.aptCommands(cmd=cmd_obj)
+			elif cmd in ewcfg.tournament_entry_commands:
+				return await ewslimeoid.tournament_entry_commands(cmd=cmd_obj)
 			else:
 				time_last = last_helped_times.get(message.author.id, 0)
 

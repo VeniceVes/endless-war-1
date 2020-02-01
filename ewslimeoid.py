@@ -1016,8 +1016,8 @@ class EwTournament:
 	# determines what's the status of the tournament(pre tournament, Winner's round 1, Loser's round 6, limbo, etc
 	tournament_status = ""
 
-	# number of brackets
-	tournament_bracket = 0
+	# number of players allowed in a tournament, which indicates the type of bracket
+	tournament_bracket_length = 0
 
 	# current number of contestants
 	contestants = 0
@@ -1052,7 +1052,7 @@ class EwTournament:
 	# the maximum level a slimeoid can be
 	level_max = 0
 
-	# the tournament prize, probably a medallion or item
+	# the tournament prize, probably a medallion or item (IDEA: The trophy, whatever that may be, can be fed to your slimeoid, which instantly shoots it up to 100 clout, allowing you to buy any held item)
 	reward = ""
 
 	""" Load the slimeoid tournament data for this server from the database. """
@@ -1066,9 +1066,9 @@ class EwTournament:
 				cursor = conn.cursor();
 
 				# Retrieve object
-				cursor.execute("SELECT {tournament_status}, {tournament_bracket}, {contestants}, {losers_bracket}, {number_slimeoids}, {set_length}, {items_allowed}, {steroids_allowed}, {hues_allowed}, {candies_allowed}, {dyes_allowed}, {level_min}, {level_max}, {reward} FROM tournaments WHERE id_server = %s".format(
+				cursor.execute("SELECT {tournament_status}, {tournament_bracket_length}, {contestants}, {losers_bracket}, {number_slimeoids}, {set_length}, {items_allowed}, {steroids_allowed}, {hues_allowed}, {candies_allowed}, {dyes_allowed}, {level_min}, {level_max}, {reward} FROM tournaments WHERE id_server = %s".format(
 					tournament_status = ewcfg.col_tournament_status,
-					tournament_bracket = ewcfg.col_tournament_bracket,
+					tournament_bracket_length = ewcfg.col_tournament_bracket_length,
 					contestants = ewcfg.col_contestants,
 					losers_bracket = ewcfg.col_losers_bracket,
 					number_slimeoids = ewcfg.col_number_slimeoids,
@@ -1088,7 +1088,7 @@ class EwTournament:
 				if result != None:
 					# Record found: apply the data to this object.
 					self.tournament_status = result[0]
-					self.tournament_bracket = result[1]
+					self.tournament_bracket_length = result[1]
 					self.contestants = result[2]
 					self.losers_bracket = result[3]
 					self.number_slimeoids = result[4]
@@ -1120,10 +1120,10 @@ class EwTournament:
 			cursor = conn.cursor();
 
 			# Save the object.
-			cursor.execute("REPLACE INTO tournaments ({id_server}, {tournament_status}, {tournament_bracket}, {contestants}, {losers_bracket}, {number_slimeoids}, {set_length}, {items_allowed}, {steroid_allowed}, {hues_allowed}, {candies_allowed}, {dyes_allowed}, {level_min}, {level_max}, {reward}) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)".format(
+			cursor.execute("REPLACE INTO tournaments ({id_server}, {tournament_status}, {tournament_bracket_length}, {contestants}, {losers_bracket}, {number_slimeoids}, {set_length}, {items_allowed}, {steroid_allowed}, {hues_allowed}, {candies_allowed}, {dyes_allowed}, {level_min}, {level_max}, {reward}) VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)".format(
 				id_server = ewcfg.col_id_server,
 				tournament_status = ewcfg.col_tournament_status,
-				tournament_bracket = ewcfg.col_tournament_bracket,
+				tournament_bracket_length = ewcfg.col_tournament_bracket_length,
 				contestants = ewcfg.col_contestants,
 				losers_bracket = ewcfg.col_losers_bracket,
 				number_slimeoids = ewcfg.col_number_slimeoids,
@@ -1139,7 +1139,7 @@ class EwTournament:
 			), (
 				self.id_server,
 				self.tournament_status,
-				self.tournament_bracket,
+				self.tournament_bracket_length,
 				self.contestants,
 				self.losers_bracket,
 				self.number_slimeoids,
@@ -1160,6 +1160,109 @@ class EwTournament:
 			cursor.close()
 			ewutils.databaseClose(conn_info)
 			
+	def retrieve_all_participants(self, slimeoid_requirement=0):
+		client = ewutils.get_client()
+		server = client.get_server(self.id_server)
+		if server == None:
+			ewutils.logMsg("error: couldn't find server with id {}".format(self.id_server))
+			return []
+		
+		query_suffix = ""
+		
+		# Grab all participants in the current tournament.
+		if slimeoid_requirement == 0:
+			pass
+		elif slimeoid_requirement == 1:
+			query_suffix = " AND slimeoid_one != 0"
+		elif slimeoid_requirement == 2:
+			query_suffix = " AND slimeoid_one != 0 AND slimeoid_two != 0"
+		elif slimeoid_requirement == 3:
+			query_suffix = " AND slimeoid_one != 0 AND slimeoid_two != 0 AND slimeoid_three != 0"
+		else:
+			ewutils.logMsg("error: slimeoid requirement was not set to 0, 1, 2, or 3.")
+			return []
+
+		participants = ewutils.execute_sql_query(
+			"SELECT {} FROM tournament_participants WHERE id_server = %s {}".format(
+				ewcfg.col_id_user,
+				query_suffix
+			), (self.id_server, ))
+		
+		participants_list = []
+		
+		for participant in participants:
+			id_user = participant[0]
+			
+			participants_list.append(id_user)
+			
+		print(participants_list)
+			
+		return participants_list
+	
+	def retrieve_all_non_disqualified_participants(self):
+		client = ewutils.get_client()
+		server = client.get_server(self.id_server)
+		if server == None:
+			ewutils.logMsg("error: couldn't find server with id {}".format(self.id_server))
+			return []
+
+		# Grab all participants in the current tournament who have not been disqualified.
+		participants = ewutils.execute_sql_query(
+			"SELECT {id_user} FROM tournament_participants WHERE id_server = %s AND {bracket_code} != %s".format(
+				id_user=ewcfg.col_id_user,
+				bracket_code=ewcfg.col_bracket_code
+			), (self.id_server, "DISQUALIFIED"))
+		
+
+		participants_list = []
+
+		for participant in participants:
+			id_user = participant[0]
+
+			participants_list.append(id_user)
+
+		return participants_list
+	
+	def clear_out_non_participants(self):
+		slimeoid_requirement = self.number_slimeoids
+		
+		query_suffix = ""
+		
+		# Delete all participants in the current tournament who do not meet the requirements.
+		if slimeoid_requirement == 1:
+			query_suffix = "AND slimeoid_one = 0"
+		elif slimeoid_requirement == 2:
+			query_suffix = "AND slimeoid_one = 0 AND slimeoid_two = 0"
+		elif slimeoid_requirement == 3:
+			query_suffix = "AND slimeoid_one = 0 AND slimeoid_two = 0 AND slimeoid_three = 0"
+		else:
+			ewutils.logMsg("error: slimeoid requirement was not set to 1, 2, or 3.")
+			return []
+
+		ewutils.execute_sql_query("DELETE FROM tournament_participants WHERE id_server = {} {}".format(self.id_server, query_suffix))
+
+	def clear_tournament_data(self):
+		ewutils.execute_sql_query(
+			"DELETE FROM tournament_participants WHERE id_server = %s".format(self.id_server))
+		
+		self.tournament_status = ""
+		self.tournament_bracket_length = 0
+		self.contestants = 0
+		self.losers_bracket = 0
+		self.number_slimeoids = 0
+		self.set_length = 0
+		self.items_allowed = 0
+		self.steroids_allowed = 0
+		self.hues_allowed = 0
+		self.candies_allowed = 0
+		self.dyes_allowed = 0
+		self.level_min = 0
+		self.level_max = 0
+		self.reward = ""
+		
+		self.persist()
+
+			
 class EwParticipant:
 	id_server = ""
 	id_user = ""
@@ -1179,6 +1282,7 @@ class EwParticipant:
 	def __init__(self, id_server = None, id_user = None):
 		if(id_user != None) and (id_server != None):
 			self.id_server = id_server
+			self.id_user = id_user
 
 			try:
 				conn_info = ewutils.databaseConnect()
@@ -1186,29 +1290,29 @@ class EwParticipant:
 				cursor = conn.cursor();
 
 				# Retrieve object
-				cursor.execute("SELECT {id_user}, {slimeoid_one}, {slimeoid_two}, {slimeoid_three}, {bracket_code}, {current_wins} FROM tournaments WHERE id_server = %s".format(
-					id_user=ewcfg.col_id_user,
+				cursor.execute("SELECT {slimeoid_one}, {slimeoid_two}, {slimeoid_three}, {bracket_code}, {current_wins} FROM tournament_participants WHERE id_server = %s AND id_user = %s".format(
 					slimeoid_one=ewcfg.col_slimeoid_one,
 					slimeoid_two=ewcfg.col_slimeoid_two,
 					slimeoid_three=ewcfg.col_slimeoid_three,
 					bracket_code=ewcfg.col_bracket_code,
 					current_wins=ewcfg.col_current_wins,
-
-				), (self.id_server, ))
+				), (self.id_server, self.id_user))
 				result = cursor.fetchone();
 
 				if result != None:
 					# Record found: apply the data to this object.
-					self.id_user = result[0],
-					self.slimeoid_one = result[1],
-					self.slimeoid_two = result[2],
-					self.slimeoid_three = result[3],
-					self.bracket_code = result[4],
-					self.current_wins = result[5],
+					self.slimeoid_one = result[0],
+					self.slimeoid_two = result[1],
+					self.slimeoid_three = result[2],
+					self.bracket_code = result[3],
+					self.current_wins = result[4],
 
 				else:
 					# Create a new database entry if the object is missing.
-					cursor.execute("REPLACE INTO tournaments(id_server, id_user) VALUES(%s, %s)", (id_server, id_user))
+					cursor.execute("REPLACE INTO tournament_participants({id_server}, {id_user}) VALUES(%s, %s)".format(
+						id_server=ewcfg.col_id_server,
+						id_user=ewcfg.col_id_user
+					), (id_server, id_user))
 
 					conn.commit()
 			finally:
@@ -1224,7 +1328,7 @@ class EwParticipant:
 			cursor = conn.cursor();
 
 			# Save the object.
-			cursor.execute("REPLACE INTO participants ({id_server}, {id_user}, {slimeoid_one}, {slimeoid_two}, {slimeoid_three}, {bracket_code}, {current_wins}) VALUES(%s, %s, %s, %s, %s, %s, %s)".format(
+			cursor.execute("REPLACE INTO tournament_participants ({id_server}, {id_user}, {slimeoid_one}, {slimeoid_two}, {slimeoid_three}, {bracket_code}, {current_wins}) VALUES(%s, %s, %s, %s, %s, %s, %s)".format(
 				id_server = ewcfg.col_id_server,
 				id_user = ewcfg.col_id_user,
 				slimeoid_one = ewcfg.col_slimeoid_one,
@@ -2803,6 +2907,8 @@ async def saturateslimeoid(cmd):
 	item_search = ewutils.flattenTokenListToString(cmd.tokens[1:])
 	item_sought = ewitem.find_item(item_search = item_search, id_user = cmd.message.author.id, id_server = cmd.message.server.id if cmd.message.server is not None else None, item_type_filter = ewcfg.it_item)
 
+	# TODO: Don't allow dyes to be used in a no-dye or no-hue tournament
+	
 	if user_data.life_state == ewcfg.life_state_corpse:
 		response = "Slimeoids don't fuck with ghosts."
 
@@ -3847,6 +3953,8 @@ async def undress_slimeoid(cmd):
 async def equipslimeoid(cmd):
 	user_data = EwUser(member = cmd.message.author)
 	slimeoid = EwSlimeoid(member=cmd.message.author)
+	
+	#TODO: Don't allow items to be equipped in a no-items tournament
 
 	if user_data.life_state == ewcfg.life_state_corpse:
 		response = "Slimeoids don't fuck with ghosts."
@@ -4052,6 +4160,8 @@ async def feedslimeoid(cmd):
 	slimeoid = EwSlimeoid(member = cmd.message.author)
 	time_now = int(time.time())
 	response = ""
+	
+	#TODO: Don't allow candies to be fed during a no candy tournament
 
 	if user_data.life_state == ewcfg.life_state_corpse:
 		response = "Slimeoids don't fuck with ghosts."
@@ -4303,7 +4413,7 @@ async def create_tournament(cmd):
 		tournament_data.id_server = user_data.id_server
 		tournament_data.tournament_status = ewcfg.tournament_phase_signup
 		
-		tournament_data.tournament_bracket = 4
+		tournament_data.tournament_bracket_length = 4
 		tournament_data.losers_bracket = 0
 		tournament_data.number_slimeoids = 1
 		tournament_data.set_length = 3
@@ -4325,8 +4435,107 @@ async def create_tournament(cmd):
 		
 		response = "Tournament created! Settings have been set to default." #TODO: explain default settings
 		return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
+	
+	
+	# if hues are not allowed, do NOT allow dyes either
 
 	if cmd.tokens_count == 12:
 		pass
+
+async def tournament_entry_commands(cmd):
+	tokens_count = len(cmd.tokens)
+	cmd_text = cmd.tokens[0].lower() #if tokens_count >= 1 else ""
+	player = EwPlayer(id_user=cmd.message.author.id)
+	user_data = EwUser(id_user=cmd.message.author.id, id_server=player.id_server)
+	server = ewcfg.server_list[user_data.id_server]
+	member_object = server.get_member(player.id_user)
+	cmd.message.author = member_object
+	cmd.message.server = server
+	dm = True
+
+
+	if cmd_text in [ewcfg.cmd_sign_up]:
+		return await sign_up(cmd, dm)
+	elif cmd_text in [ewcfg.cmd_enter_slimeoid]:
+		return await enter_slimeoid(cmd, dm)
 	
+
+async def sign_up(cmd, dm=False):
+	user_data = EwUser(member=cmd.message.author)
+
+	if not dm:
+		response = "ENDLESS WAR politely asks that you perform that tournament-entry in his DMs."
+		return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
 	
+	tournament_data = EwTournament(id_server=user_data.id_server)
+	if tournament_data.tournament_status == '':
+		response = "There is currently no active slimeoid tournament."
+		return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
+	elif tournament_data.tournament_status != ewcfg.tournament_phase_signup:
+		response = "The tournament has already started! No more signups are allowed at this time."
+		return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
+	elif len(tournament_data.retrieve_all_participants(slimeoid_requirement=tournament_data.number_slimeoids)) >= tournament_data.tournament_bracket_length:
+		response = "The tournament is full! No more participants can be added at this time."
+		return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
+	elif user_data.id_user in tournament_data.retrieve_all_participants(slimeoid_requirement=0):
+		response = "You're already in the tournament, dummy! If you want to re-enter, use the !optout command first."
+		return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
+	else:
+		participant_data = EwParticipant(id_server=user_data.id_server, id_user=user_data.id_user)
+		participant_data.bracket_code = ewcfg.slimeoid_tournament_bracket_codes[ewcfg.tournament_phase_signup][0] # SIGNUP
+		participant_data.persist()
+		
+		tournament_data.contestants += 1
+		tournament_data.persist()
+		
+		response = "You've been added to the tournament! Use !enterslimeoid to sign up your currently active slimeoid.\nIf the tournament requires more than one slimeoid, we ask that you bottle and unbottle as needed."
+		return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
+	
+
+
+async def enter_slimeoid(cmd, dm=False):
+	user_data = EwUser(member=cmd.message.author)
+	participant_data = EwParticipant(id_server=user_data.id_server, id_user=user_data.id_user)
+	slimeoid = EwSlimeoid(id_user=user_data.id_user, id_server=user_data.id_server)
+
+	if not dm:
+		response = "ENDLESS WAR politely asks that you perform that tournament-entry in his DMs."
+		return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
+
+	tournament_data = EwTournament(id_server=user_data.id_server)
+	if tournament_data.tournament_status == '':
+		response = "There is currently no active slimeoid tournament."
+		return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
+	elif user_data.id_user not in tournament_data.retrieve_all_participants(slimeoid_requirement=0):
+		response = "You gotta !signup for the tournament, first, dumbass."
+		return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
+	elif tournament_data.retrieve_all_participants(slimeoid_requirement=tournament_data.number_slimeoids) == tournament_data.tournament_bracket_length:
+		response = "I'm afraid it's too late for that, my friend. Enough people have signed up their slimeoids before you, and now the tournament is full. Better luck next time!"
+		return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
+	elif user_data.id_user in tournament_data.retrieve_all_participants(slimeoid_requirement=tournament_data.number_slimeoids):
+		response = "You've already entered in the maximum amount of slimeoids, bitch."
+		return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
+	elif tournament_data.items_allowed == 0 and slimeoid.held_item != "":
+		response = "No items allowed, kid. You gotta !unequipslimeoid to get them into this tournament"
+		return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
+	#if tournament_data.steroids_allowed == 0 and slimeoid.has_steriods == 1:
+	#	response = "Roids are against the rules, I'm afraid. Your slimeoid will just have to sit this one out."
+	#	return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
+	elif tournament_data.hues_allowed == 0 and (slimeoid.hue != "" or slimeoid.hue is not None):
+		response = "This tournament does not allow saturated slimeoids in the slightest. You're gonna need to wash it first."
+		return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
+	elif slimeoid.level < tournament_data.level_min:
+		response = "Your slimeoid is too small and helpless to enter into this league. Maybe that's for its own good. Try entering in one that's bigger, maybe."
+		return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
+	elif slimeoid.level > tournament_data.level_max:
+		response = "Whoa there, man. That slimeoid you've got standing next to you is just a cut above the kind we allow in this tournament. Try entering in one that's smaller, perhaps."
+		return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
+	else:
+		participant_data.slimeoid_one = slimeoid.id_slimeoid
+		participant_data.persist()
+
+		response = "{} has been entered into the tournament! If this was a mistake and you need to start over, use !optout and then !signup again.".format(slimeoid.name)
+		return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
+
+	
+
