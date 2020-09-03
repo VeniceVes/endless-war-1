@@ -23602,7 +23602,7 @@ quadrants = [
 
 		resp_view_onesided = "{} has a one-sided pink crush on {}.",
 
-		resp_view_onesided_self = "You have a one-sided red crush on {}.",
+		resp_view_onesided_self = "You have a one-sided pink crush on {}.",
 
 		resp_view_relationship = "{} is in a soulution with {}. " + emote_hearts,
 
