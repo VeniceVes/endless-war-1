@@ -32,16 +32,16 @@ async def post_leaderboards(client = None, server = None):
 	await ewutils.send_message(client, leaderboard_channel, topfashion)
 	topdonated = make_userdata_board(server = server, category = ewcfg.col_splattered_slimes, title = ewcfg.leaderboard_donated)
 	await ewutils.send_message(client, leaderboard_channel, topdonated)
-	topdegraded = make_userdata_board(server = server, category = ewcfg.col_degradation, title = ewcfg.leaderboard_degradation)
-	await ewutils.send_message(client, leaderboard_channel, topdegraded)
-	topshamblerkills = make_statdata_board(server = server, category = ewcfg.stat_shamblers_killed, title = ewcfg.leaderboard_shamblers_killed)
-	await ewutils.send_message(client, leaderboard_channel, topshamblerkills)
+	#topdegraded = make_userdata_board(server = server, category = ewcfg.col_degradation, title = ewcfg.leaderboard_degradation)
+	#await ewutils.send_message(client, leaderboard_channel, topdegraded)
+	#topshamblerkills = make_statdata_board(server = server, category = ewcfg.stat_shamblers_killed, title = ewcfg.leaderboard_shamblers_killed)
+	#await ewutils.send_message(client, leaderboard_channel, topshamblerkills)
 	topslimeoids = make_slimeoids_top_board(server = server)
 	await ewutils.send_message(client, leaderboard_channel, topslimeoids)
 	#topfestivity = make_slimernalia_board(server = server, title = ewcfg.leaderboard_slimernalia)
 	#await ewutils.send_message(client, leaderboard_channel, topfestivity)
-	#topzines = make_zines_top_board(server=server)
-	#await ewutils.send_message(client, leaderboard_channel, topzines)
+	topzines = make_zines_top_board(server=server)
+	await ewutils.send_message(client, leaderboard_channel, topzines)
 	#topgambit = make_gambit_leaderboard(server = server, title = ewcfg.leaderboard_gambit_high)
 	#await ewutils.send_message(client, leaderboard_channel, topgambit)
 	#bottomgambit = make_gambit_leaderboard(server = server, title = ewcfg.leaderboard_gambit_low)
@@ -172,12 +172,13 @@ def make_userdata_board(server = None, category = "", title = "", lowscores = Fa
 		conn = conn_info.get('conn')
 		cursor = conn.cursor()
 
-		cursor.execute("SELECT {name}, {state}, {faction}, {category} FROM users, players WHERE users.id_server = %s AND users.{id_user} = players.{id_user} ORDER BY {category} {order} LIMIT {limit}".format(
+		cursor.execute("SELECT {name}, {state}, {faction}, {category} FROM users, players WHERE users.id_server = %s AND users.{id_user} = players.{id_user} AND users.{state} != {state_kingpin} ORDER BY {category} {order} LIMIT {limit}".format(
 			name = ewcfg.col_display_name,
 			state = ewcfg.col_life_state,
 			faction = ewcfg.col_faction,
 			category = category,
 			id_user = ewcfg.col_id_user,
+			state_kingpin = ewcfg.life_state_kingpin,
 			order = ('DESC' if lowscores == False else 'ASC'),
 			limit = rows
 		), (
@@ -280,9 +281,9 @@ def make_district_control_board(id_server, title):
 
 	for district in districts:
 		district_data = EwDistrict(district = district, id_server = id_server)
-		if district_data.all_streets_taken() == ewcfg.faction_rowdys:
+		if district_data.controlling_faction == ewcfg.faction_rowdys:
 			rowdy_districts += 1
-		elif district_data.all_streets_taken() == ewcfg.faction_killers:
+		elif district_data.controlling_faction == ewcfg.faction_killers:
 			killer_districts += 1
 
 	rowdy_entry = [ewcfg.faction_rowdys.capitalize(), rowdy_districts]

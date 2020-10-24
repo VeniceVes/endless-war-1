@@ -27,11 +27,23 @@ last_mismined_times = {}
 juviesrow_mines = {}
 toxington_mines = {}
 cratersville_mines = {}
+juviesrow_mines_minesweeper = {}
+toxington_mines_minesweeper = {}
+cratersville_mines_minesweeper = {}
+juviesrow_mines_bubblebreaker = {}
+toxington_mines_bubblebreaker = {}
+cratersville_mines_bubblebreaker = {}
 
 mines_map = {
 	ewcfg.poi_id_mine: juviesrow_mines,
 	ewcfg.poi_id_tt_mines: toxington_mines,
-	ewcfg.poi_id_cv_mines: cratersville_mines
+	ewcfg.poi_id_cv_mines: cratersville_mines,
+	ewcfg.poi_id_mine_sweeper: juviesrow_mines_minesweeper,
+	ewcfg.poi_id_tt_mines_sweeper: toxington_mines_minesweeper,
+	ewcfg.poi_id_cv_mines_sweeper: cratersville_mines_minesweeper,
+	ewcfg.poi_id_mine_bubble: juviesrow_mines_bubblebreaker,
+	ewcfg.poi_id_tt_mines_bubble: toxington_mines_bubblebreaker,
+	ewcfg.poi_id_cv_mines_bubble: cratersville_mines_bubblebreaker
 }
 
 scavenge_combos = {}
@@ -72,7 +84,6 @@ async def enlist(cmd):
 	time_now = int(time.time())
 	bans = user_data.get_bans()
 	vouchers = user_data.get_vouchers()
-	user_is_pvp = (user_data.time_expirpvp > time_now)
 
 	if user_data.life_state == ewcfg.life_state_corpse:
 		response = "You're dead, bitch."
@@ -89,7 +100,7 @@ async def enlist(cmd):
 	if cmd.tokens_count > 1:
 		desired_faction = cmd.tokens[1].lower()
 	else:
-		response = "Which faction? Say '{} {}' or '{} {}'.".format(ewcfg.cmd_enlist, ewcfg.faction_killers, ewcfg.cmd_enlist, ewcfg.faction_rowdys)
+		response = "Which faction? Say '{} {}', '{} {}', or '{} {}'.".format(ewcfg.cmd_enlist, ewcfg.faction_killers, ewcfg.cmd_enlist, ewcfg.faction_rowdys, ewcfg.cmd_enlist, ewcfg.faction_slimecorp)
 		return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
 
 	if desired_faction == ewcfg.faction_killers:
@@ -104,7 +115,7 @@ async def enlist(cmd):
 			response = "You are already enlisted in the {}! Look, your name is purple! Get a clue, idiot.".format(user_data.faction)
 			return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
 
-		elif user_data.faction == ewcfg.faction_rowdys:
+		elif user_data.faction == ewcfg.faction_rowdys or user_data.faction == ewcfg.faction_slimecorp:
 			response = "Traitor! You can only {} in the {}, you treacherous cretin. Ask for a {} if you're that weak-willed.".format(ewcfg.cmd_enlist, user_data.faction, ewcfg.cmd_pardon)
 			return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
 
@@ -113,7 +124,6 @@ async def enlist(cmd):
 			user_data.life_state = ewcfg.life_state_enlisted
 			user_data.faction = ewcfg.faction_killers
 			user_data.time_lastenlist = time_now + ewcfg.cd_enlist
-			user_data.time_expirpvp = ewutils.calculatePvpTimer(user_data.time_expirpvp, ewcfg.time_pvp_enlist, True)
 			for faction in vouchers:
 				user_data.unvouch(faction)
 			user_data.persist()
@@ -131,7 +141,7 @@ async def enlist(cmd):
 			response = "You are already enlisted in the {}! Look, your name is pink! Get a clue, idiot.".format(user_data.faction)
 			return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
 
-		elif user_data.faction == ewcfg.faction_killers:
+		elif user_data.faction == ewcfg.faction_killers or user_data.faction == ewcfg.faction_slimecorp:
 			response = "Traitor! You can only {} in the {}, you treacherous cretin. Ask for a {} if you're that weak-willed.".format(ewcfg.cmd_enlist, user_data.faction, ewcfg.cmd_pardon)
 			return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
 
@@ -140,11 +150,75 @@ async def enlist(cmd):
 			user_data.life_state = ewcfg.life_state_enlisted
 			user_data.faction = ewcfg.faction_rowdys
 			user_data.time_lastenlist = time_now + ewcfg.cd_enlist
-			user_data.time_expirpvp = ewutils.calculatePvpTimer(user_data.time_expirpvp, ewcfg.time_pvp_enlist, True)
+			
 			for faction in vouchers:
 				user_data.unvouch(faction)
 			user_data.persist()
 			await ewrolemgr.updateRoles(client = cmd.client, member = cmd.message.author)
+			
+	elif desired_faction == ewcfg.faction_slimecorp:
+		if cmd.message.channel.name != ewcfg.channel_slimecorphq:
+			response = "To enlist in the SlimeCorp security forces, you must enlist at SlimeCorp headquarters in Downtown NLACakaNM."
+			return await ewutils.send_message(cmd.client, cmd.message.channel,  ewutils.formatMessage(cmd.message.author, response))
+		
+		if ewcfg.faction_slimecorp in bans:
+			response = "You are banned from enlisting in the {} security forces.".format(ewcfg.faction_slimecorp)
+			return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
+		if ewcfg.faction_slimecorp not in vouchers and user_data.faction != ewcfg.faction_slimecorp:
+			response = "You need a current executive or security officer's permission to join the {} security forces.".format(ewcfg.faction_slimecorp)
+			return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
+
+		elif user_data.life_state in [ewcfg.life_state_enlisted] and user_data.faction == ewcfg.faction_slimecorp:
+			response = "You are already enlisted in the {} security forces! Look, your name is red! Get a clue, idiot.".format(user_data.faction)
+			return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
+
+		# elif user_data.faction == ewcfg.faction_killers or user_data.faction == ewcfg.faction_rowdys:
+		# 	response = "Traitor! You can't {} in the {} security forces, you treacherous cretin. Ask for a {} if you're that weak-willed.".format(ewcfg.cmd_enlist, user_data.faction, ewcfg.cmd_pardon)
+		# 	return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
+
+		else:
+
+			accepted = 0
+			member = cmd.message.author
+			
+			if user_data.faction != ewcfg.faction_slimecorp:
+				# User has not enlisted in the security forces yet, give them a firm warning of the consequences.
+				warning = "This action will banish you from both the rowdys and the killers. Are you sure you want to go through with this? Reply with **!accept** or **!refuse**."
+				await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(member, warning))
+
+				# Wait for an answer
+				try:
+					msg = await cmd.client.wait_for('message', timeout=30, check=lambda message: message.author == member and message.content.lower() in [ewcfg.cmd_accept, ewcfg.cmd_refuse])
+
+					if msg != None:
+						if msg.content == "!accept":
+							accepted = 1
+						else:
+							accepted = 0
+				except:
+					accepted = 0
+			else:
+				accepted = 2
+				
+			if accepted >= 1:
+				user_data = EwUser(member=member)
+				
+				if accepted == 1:
+					# User has accepted for the first time, banish them.
+					user_data.ban(faction=ewcfg.faction_rowdys)
+					user_data.unvouch(faction=ewcfg.faction_rowdys)
+	
+					user_data.ban(faction=ewcfg.faction_killers)
+					user_data.unvouch(faction=ewcfg.faction_killers)
+				
+				response = "Enlisting in the {} security forces.".format(ewcfg.faction_slimecorp)
+				user_data.life_state = ewcfg.life_state_enlisted
+				user_data.faction = ewcfg.faction_slimecorp
+				user_data.time_lastenlist = time_now + ewcfg.cd_enlist
+				user_data.persist()
+				await ewrolemgr.updateRoles(client=cmd.client, member=cmd.message.author)
+			else:
+				response = "Perhaps some other time, then."
 
 	else:
 		response = "That's not a valid gang you can enlist in, bitch."
@@ -166,7 +240,7 @@ async def renounce(cmd):
 	elif user_data.life_state != ewcfg.life_state_enlisted:
 		response = "What exactly are you renouncing? Your lackadaisical, idyllic life free of vice and violence? You aren't actually currently enlisted in any gang, retard."
 
-	elif user_data.poi not in [ewcfg.poi_id_rowdyroughhouse, ewcfg.poi_id_copkilltown]:
+	elif user_data.poi not in [ewcfg.poi_id_rowdyroughhouse, ewcfg.poi_id_copkilltown, ewcfg.poi_id_thebreakroom]:
 		response = "To turn in your badge, you must return to your soon-to-be former gang base."
 
 	else:
@@ -205,14 +279,14 @@ async def mine(cmd):
 
 	# Enlisted players only mine at certain times.
 	if user_data.life_state == ewcfg.life_state_enlisted:
-		if user_data.faction == ewcfg.faction_rowdys and (market_data.clock < 8 or market_data.clock > 17):
+		if user_data.faction == ewcfg.faction_rowdys and (market_data.clock < 8 or market_data.clock > 17) and ewcfg.mutation_id_lightminer not in mutations:
 			return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, "Rowdies only mine in the daytime. Wait for full daylight at 8am.".format(ewcfg.cmd_revive)))
 
-		if user_data.faction == ewcfg.faction_killers and (market_data.clock < 20 and market_data.clock > 5):
+		if user_data.faction == ewcfg.faction_killers and (market_data.clock < 20 and market_data.clock > 5) and ewcfg.mutation_id_lightminer not in mutations:
 			return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, "Killers only mine under cover of darkness. Wait for nightfall at 8pm.".format(ewcfg.cmd_revive)))
 
 	# Mine only in the mines.
-	if cmd.message.channel.name in [ewcfg.channel_mines, ewcfg.channel_cv_mines, ewcfg.channel_tt_mines]:
+	if cmd.message.channel.name in ewcfg.mining_channels:
 		poi = ewcfg.id_to_poi.get(user_data.poi)
 		district_data = EwDistrict(district = poi.id_poi, id_server = user_data.id_server)
 
@@ -230,12 +304,9 @@ async def mine(cmd):
 			extra = hunger_cost_mod - int(hunger_cost_mod)  # extra is the fractional part of hunger_cost_mod
 
 			world_events = ewworldevent.get_world_events(id_server = cmd.guild.id)
-			minigame_event = None
+			mining_type = ewcfg.mines_mining_type_map.get(user_data.poi)
 			for id_event in world_events:
-				if world_events.get(id_event) in ewcfg.grid_type_by_mining_event:
-					event_data = EwWorldEvent(id_event = id_event)
-					if event_data.event_props.get('poi') == user_data.poi:
-						minigame_event = event_data.event_type
+
 				if world_events.get(id_event) == ewcfg.event_type_minecollapse:
 					event_data = EwWorldEvent(id_event = id_event)
 					if int(event_data.event_props.get('id_user')) == user_data.id_user and event_data.event_props.get('poi') == user_data.poi:
@@ -247,6 +318,10 @@ async def mine(cmd):
 						if captcha in tokens_lower:
 							ewworldevent.delete_world_event(id_event = id_event)
 							response = "You escape from the collapsing mineshaft."
+							return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
+						elif ewcfg.mutation_id_lightminer in mutations:
+							ewworldevent.delete_world_event(id_event=id_event)
+							response = "You nimbly step outside the collapse without even thinking about it."
 							return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
 						else:
 							return await mismine(cmd, user_data, ewcfg.event_type_minecollapse)
@@ -261,7 +336,7 @@ async def mine(cmd):
 			grid_cont = mines_map.get(user_data.poi).get(user_data.id_server)
 			grid = grid_cont.grid
 
-			grid_type = ewcfg.grid_type_by_mining_event.get(minigame_event)
+			grid_type = ewcfg.grid_type_by_mining_type.get(mining_type)
 			if grid_type != grid_cont.grid_type:
 				init_grid(user_data.poi, user_data.id_server)
 				printgrid = True
@@ -277,7 +352,9 @@ async def mine(cmd):
 				response = mining_yield
 				if len(response) > 0:
 					await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
-				return # await print_grid(cmd)
+				if time_now > grid_cont.time_last_posted + 10:
+					await print_grid(cmd)
+				return
 					
 
 
@@ -356,9 +433,6 @@ async def mine(cmd):
 					if event_data.event_type == ewcfg.event_type_minecollapse:
 						str_event_start = str_event_start.format(cmd = ewcfg.cmd_mine, captcha = ewutils.text_to_regional_indicator(event_data.event_props.get('captcha')))
 					response += str_event_start + "\n"
-				if event_data.event_type in [ewcfg.event_type_minesweeper, ewcfg.event_type_pokemine, ewcfg.event_type_bubblebreaker]:
-					init_grid(poi = event_data.event_props.get('poi'), id_server = event_data.id_server)
-					printgrid = True
 
 			if random.random() < unearthed_item_chance:
 				unearthed_item = True
@@ -406,9 +480,9 @@ async def mine(cmd):
 			if user_data.life_state == ewcfg.life_state_juvenile:
 				mining_yield *= 2
 
-			trauma = ewcfg.trauma_map.get(user_data.trauma)
-			if trauma != None and trauma.trauma_class == ewcfg.trauma_class_slimegain:
-				mining_yield *= (1 - 0.5 * user_data.degradation / 100)
+			#trauma = ewcfg.trauma_map.get(user_data.trauma)
+			#if trauma != None and trauma.trauma_class == ewcfg.trauma_class_slimegain:
+			#	mining_yield *= (1 - 0.5 * user_data.degradation / 100)
 
 			mining_yield = max(0, round(mining_yield))
 
@@ -428,18 +502,14 @@ async def mine(cmd):
 			if was_levelup:
 				response += levelup_response
 
-			was_pvp = user_data.time_expirpvp > time_now
-			# Flag the user for PvP
-			enlisted = True if user_data.life_state == ewcfg.life_state_enlisted else False
-			# user_data.time_expirpvp = ewutils.calculatePvpTimer(user_data.time_expirpvp, ewcfg.time_pvp_mine, enlisted)
-			# 
 			user_data.persist()
-			# if not was_pvp:
-			# 	await ewrolemgr.updateRoles(client = cmd.client, member = cmd.message.author)
 
 			if printgrid:
 				await print_grid(cmd)
 
+			# gangsters don't need their roles updated
+			if user_data.life_state == ewcfg.life_state_juvenile:
+				await ewrolemgr.updateRoles(client = cmd.client, member = cmd.message.author)
 
 	else:
 		return await mismine(cmd, user_data, "channel")
@@ -452,6 +522,7 @@ async def mine(cmd):
 async def flag(cmd):
 	market_data = EwMarket(id_server = cmd.message.author.guild.id)
 	user_data = EwUser(member = cmd.message.author)
+	mutations = user_data.get_mutations()
 	if user_data.life_state == ewcfg.life_state_shambler:
 		response = "You lack the higher brain functions required to {}.".format(cmd.tokens[0])
 		return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
@@ -470,14 +541,14 @@ async def flag(cmd):
 
 	# Enlisted players only mine at certain times.
 	if user_data.life_state == ewcfg.life_state_enlisted:
-		if user_data.faction == ewcfg.faction_rowdys and (market_data.clock < 8 or market_data.clock > 17):
+		if user_data.faction == ewcfg.faction_rowdys and (market_data.clock < 8 or market_data.clock > 17) and ewcfg.mutation_id_lightminer not in mutations:
 			return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, "Rowdies only mine in the daytime. Wait for full daylight at 8am.".format(ewcfg.cmd_revive)))
 
-		if user_data.faction == ewcfg.faction_killers and (market_data.clock < 20 and market_data.clock > 5):
+		if user_data.faction == ewcfg.faction_killers and (market_data.clock < 20 and market_data.clock > 5) and ewcfg.mutation_id_lightminer not in mutations:
 			return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, "Killers only mine under cover of darkness. Wait for nightfall at 8pm.".format(ewcfg.cmd_revive)))
 
 	# Mine only in the mines.
-	if user_data.poi in [ewcfg.poi_id_mine, ewcfg.poi_id_cv_mines, ewcfg.poi_id_tt_mines]:
+	if cmd.message.channel.name in ewcfg.mining_channels:
 		poi = ewcfg.id_to_poi.get(user_data.poi)
 		district_data = EwDistrict(district = poi.id_poi, id_server = user_data.id_server)
 
@@ -493,15 +564,9 @@ async def flag(cmd):
 			hunger_cost_mod = ewutils.hunger_cost_mod(user_data.slimelevel)
 			extra = hunger_cost_mod - int(hunger_cost_mod)  # extra is the fractional part of hunger_cost_mod
 
-			world_events = ewworldevent.get_world_events(id_server = cmd.guild.id)
-			minigame_event = None
-			for id_event in world_events:
-				if world_events.get(id_event) in ewcfg.grid_type_by_mining_event:
-					event_data = EwWorldEvent(id_event = id_event)
-					if event_data.event_props.get('poi') == user_data.poi:
-						minigame_event = event_data.event_type
+			mining_type = ewcfg.mines_mining_type_map.get(user_data.poi)
 
-			if minigame_event != ewcfg.event_type_minesweeper:
+			if mining_type != ewcfg.mining_type_minesweeper:
 				response = "What do you think you can flag here?"
 				return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
 
@@ -515,7 +580,7 @@ async def flag(cmd):
 			grid_cont = mines_map.get(user_data.poi).get(user_data.id_server)
 			grid = grid_cont.grid
 
-			grid_type = ewcfg.grid_type_by_mining_event.get(minigame_event)
+			grid_type = ewcfg.grid_type_by_mining_type.get(mining_type)
 			if grid_type != grid_cont.grid_type:
 				init_grid(user_data.poi, user_data.id_server)
 				printgrid = True
@@ -526,8 +591,8 @@ async def flag(cmd):
 			row = -1
 			col = -1
 			if cmd.tokens_count < 2:
-				response = "Please specify which Minesweeper vein to mine."
-				return response
+				response = "Please specify which Minesweeper vein to flag."
+				return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
 
 			for token in cmd.tokens[1:]:
 				
@@ -628,8 +693,12 @@ async def mismine(cmd, user_data, cause):
 		if random.randrange(4) == 0:
 			accident_response = "Big John arrives just in time to save you from your mining accident!\nhttps://cdn.discordapp.com/attachments/431275470902788107/743629505876197416/mine2.jpg"
 		else:
-			user_data.change_slimes(n = -(user_data.slimes / 2))
-			user_data.persist()
+			mutations = user_data.get_mutations()
+			if ewcfg.mutation_id_lightminer in mutations:
+				response = "You instinctively jump out of the way of the collapsing shaft, not a scratch on you. Whew, really gets your blood pumping."
+			else:
+				user_data.change_slimes(n=-(user_data.slimes * 0.5))
+				user_data.persist()
 
 		await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, accident_response))
 		# await ewrolemgr.updateRoles(client = cmd.client, member = cmd.message.author)
@@ -700,7 +769,10 @@ async def scavenge(cmd):
 			#scavenge_mod = 0.003 * (time_since_last_scavenge ** 0.9)
 			scavenge_mod = 0.005 * combo
 
-			if ewcfg.mutation_id_whitenationalist in mutations and market_data.weather == "snow":
+			if (ewcfg.mutation_id_whitenationalist in mutations or ewcfg.mutation_id_airlock in mutations) and market_data.weather == "snow":
+				scavenge_mod *= 1.5
+
+			if ewcfg.mutation_id_airlock in mutations and market_data.weather == "snow":
 				scavenge_mod *= 1.5
 
 			if ewcfg.mutation_id_webbedfeet in mutations:
@@ -724,10 +796,17 @@ async def scavenge(cmd):
 				if scavenge_combos.get(user_data.id_user) > 0 and (time_now - user_data.time_lastscavenge) < 60:
 					if scavenge_captchas.get(user_data.id_user).lower() == item_search.lower():
 						scavenge_combos[user_data.id_user] += 1
-						new_captcha = gen_scavenge_captcha(scavenge_combos.get(user_data.id_user))
+						new_captcha = gen_scavenge_captcha(n=scavenge_combos.get(user_data.id_user), id_user=user_data.id_user, id_server=user_data.id_server)
 						response += "New captcha: **" + ewutils.text_to_regional_indicator(new_captcha) + "**"
+						if ewcfg.mutation_id_webbedfeet in mutations:
+							response += "\nYour flippers pick up {:,} slime.".format(scavenge_yield)
 						scavenge_captchas[user_data.id_user] = new_captcha
 						has_comboed = True
+
+						if ewcfg.mutation_id_dumpsterdiver in mutations:
+							has_comboed = False
+							item_search = item_search[random.randrange(len(item_search))]
+
 					else:
 						scavenge_combos[user_data.id_user] = 0
 
@@ -756,8 +835,10 @@ async def scavenge(cmd):
 						response += loot_resp +"\n\n"
 
 				scavenge_combos[user_data.id_user] = 1
-				new_captcha = gen_scavenge_captcha(1)
+				new_captcha = gen_scavenge_captcha(n=1, id_user=user_data.id_user, id_server=user_data.id_server)
 				response += "New captcha: **" + ewutils.text_to_regional_indicator(new_captcha) + "**"
+				if ewcfg.mutation_id_webbedfeet in mutations:
+					response += "\nYour flippers pick up {:,} slime.".format(scavenge_yield)
 				scavenge_captchas[user_data.id_user] = new_captcha
 
 			# Fatigue the scavenger.
@@ -772,21 +853,14 @@ async def scavenge(cmd):
 
 			user_data.time_lastscavenge = time_now
 
-			was_pvp = user_data.time_expirpvp > time_now
-
-			# Flag the user for PvP
-			enlisted = True if user_data.life_state == ewcfg.life_state_enlisted else False
-			
-			user_poi = ewcfg.id_to_poi.get(user_data.poi)
-			if user_poi.is_district:
-				user_data.time_expirpvp = ewutils.calculatePvpTimer(user_data.time_expirpvp, ewcfg.time_pvp_scavenge, enlisted)
-
 			user_data.persist()
-			if not was_pvp:
-				await ewrolemgr.updateRoles(client = cmd.client, member = cmd.message.author)
 
 			if not response == "":
 				await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
+
+			# gangsters don't need their roles updated
+			if user_data.life_state == ewcfg.life_state_juvenile:
+				await ewrolemgr.updateRoles(client = cmd.client, member = cmd.message.author)
 	else:
 		return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, "You'll find no slime here, this place has been picked clean. Head into the city to try and scavenge some slime."))
 
@@ -818,22 +892,22 @@ async def crush(cmd):
 			ewitem.item_delete(id_item=sought_id)
 
 			status_effects = user_data.getStatusEffects()
-			sap_resp = ""
-			if ewcfg.status_sapfatigue_id not in status_effects:
-				sap_gain = 5
-				sap_gain = max(0, min(sap_gain, ewutils.sap_max_bylevel(user_data.slimelevel) - (user_data.hardened_sap + user_data.sap)))
-				if sap_gain > 0:
-					user_data.sap += sap_gain
-					user_data.applyStatus(id_status = ewcfg.status_sapfatigue_id, source = user_data.id_user)
-					sap_resp = " and {} sap".format(sap_gain)
+			#sap_resp = ""
+			#if ewcfg.status_sapfatigue_id not in status_effects:
+			#	sap_gain = 5
+			#	sap_gain = max(0, min(sap_gain, ewutils.sap_max_bylevel(user_data.slimelevel) - (user_data.hardened_sap + user_data.sap)))
+			#	if sap_gain > 0:
+			#		user_data.sap += sap_gain
+			#		user_data.applyStatus(id_status = ewcfg.status_sapfatigue_id, source = user_data.id_user)
+			#		sap_resp = " and {} sap".format(sap_gain)
 
 			levelup_response = user_data.change_slimes(n = crush_slimes, source = ewcfg.source_crush)
 			user_data.persist()
 			
 			if crunch_used:
-				response = "You crunch the hardened slime crystal with your bare teeth.\nYou gain {} slime{}. Sick, dude!!".format(crush_slimes, sap_resp)
+				response = "You crunch the hardened slime crystal with your bare teeth.\nYou gain {} slime. Sick, dude!!".format(crush_slimes)
 			else:
-				response = "You crush the hardened slime crystal with your bare hands.\nYou gain {} slime{}. Sick, dude!!".format(crush_slimes, sap_resp)
+				response = "You crush the hardened slime crystal with your bare hands.\nYou gain {} slime. Sick, dude!!".format(crush_slimes)
 			
 			if len(levelup_response) > 0:
 				response += "\n\n" + levelup_response
@@ -892,19 +966,13 @@ async def crush(cmd):
 	await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
 
 def init_grid(poi, id_server):
-	world_events = ewworldevent.get_world_events(id_server = id_server)
-	minigame_event = None
-	for id_event in world_events:
-		if world_events.get(id_event) in [ewcfg.event_type_minesweeper, ewcfg.event_type_pokemine, ewcfg.event_type_bubblebreaker]:
-			event_data = EwWorldEvent(id_event = id_event)
-			if event_data.event_props.get('poi') == poi:
-				minigame_event = event_data.event_type
+	mining_type = ewcfg.mines_mining_type_map.get(poi)
 
-	if minigame_event == ewcfg.event_type_minesweeper:
+	if mining_type == ewcfg.mining_type_minesweeper:
 		return init_grid_minesweeper(poi, id_server)
-	elif minigame_event == ewcfg.event_type_pokemine:
+	elif mining_type == ewcfg.mining_type_pokemine:
 		return init_grid_pokemine(poi, id_server)
-	elif minigame_event == ewcfg.event_type_bubblebreaker:
+	elif mining_type == ewcfg.mining_type_bubblebreaker:
 		return init_grid_bubblebreaker(poi, id_server)
 	else:
 		return init_grid_none(poi, id_server)
@@ -1124,6 +1192,8 @@ async def print_grid_bubblebreaker(cmd):
 			await ewutils.edit_message(cmd.client, grid_cont.wall_message, grid_edit)
 
 # for pokemining
+
+
 def get_cell_symbol_bubblebreaker(cell):
 	if cell == ewcfg.cell_bubble_empty:
 		return " "
@@ -1335,7 +1405,7 @@ def get_mining_yield_minesweeper(cmd, grid_cont):
 	elif grid[row][col] == ewcfg.cell_empty:
 		grid[row][col] = ewcfg.cell_empty_open
 		grid_cont.cells_mined += 1
-		mining_yield = grid_multiplier * 5 * get_mining_yield_default(cmd)
+		mining_yield = grid_multiplier * 1.7 * get_mining_yield_default(cmd)
 
 	unmined_cells = get_unmined_cell_count(grid_cont)
 
@@ -1352,8 +1422,14 @@ def get_mining_yield_minesweeper(cmd, grid_cont):
 			if random.randrange(4) == 0:
 				response = "Big John arrives just in time to save you from your mining accident!\nhttps://cdn.discordapp.com/attachments/431275470902788107/743629505876197416/mine2.jpg"
 			else:
-				user_data.change_slimes(n=-slimes_lost)
-				user_data.persist()
+				mutations = user_data.get_mutations()
+				if ewcfg.mutation_id_lightminer in mutations:
+					response = "You instinctively jump out of the way of the live mine, barely escaping with your life. Whew, really gets your blood pumping."
+					user_data.hunger += int(ewcfg.hunger_perlmcollapse * hunger_cost_mod)
+					user_data.persist()
+				else:
+					user_data.change_slimes(n=-(user_data.slimes * 0.3))
+					user_data.persist()
 				
 		init_grid_minesweeper(user_data.poi, user_data.id_server)
 
@@ -1370,6 +1446,8 @@ def get_mining_yield_bubblebreaker(cmd, grid_cont):
 	user_data = EwUser(member = cmd.message.author)
 	grid = grid_cont.grid
 
+	hunger_cost_mod = ewutils.hunger_cost_mod(user_data.slimelevel)
+
 	row = -1
 	col = -1
 	bubble_add = None
@@ -1379,6 +1457,13 @@ def get_mining_yield_bubblebreaker(cmd, grid_cont):
 
 	for token in cmd.tokens[1:]:
 		token_lower = token.lower()
+
+		coords = token_lower
+		if coords == "reset":
+			user_data.hunger += int(ewcfg.hunger_perminereset * hunger_cost_mod)
+			user_data.persist()
+			init_grid_bubblebreaker(user_data.poi, user_data.id_server)
+			return ""
 
 		if col < 1:
 			for char in token_lower:
@@ -1407,7 +1492,7 @@ def get_mining_yield_bubblebreaker(cmd, grid_cont):
 
 	cells_to_clear = []
 	
-	slimes_pertile = 3 * get_mining_yield_default(cmd)
+	slimes_pertile = 1.8 * get_mining_yield_default(cmd)
 	if grid[row][col] != ewcfg.cell_bubble_empty:
 		mining_accident = True
 	else:
@@ -1438,8 +1523,12 @@ def get_mining_yield_bubblebreaker(cmd, grid_cont):
 		if random.randrange(4) == 0:
 			response = "Big John arrives just in time to save you from your mining accident!\nhttps://cdn.discordapp.com/attachments/431275470902788107/743629505876197416/mine2.jpg"
 		else:
-			user_data.change_slimes(n=-(user_data.slimes * 0.5))
-			user_data.persist()
+			mutations = user_data.get_mutations()
+			if ewcfg.mutation_id_lightminer in mutations:
+				response = "You instinctively jump out of the way of the collapsing shaft, not a scratch on you. Whew, really gets your blood pumping."
+			else:
+				user_data.change_slimes(n=-(user_data.slimes * 0.3))
+				user_data.persist()
 
 		init_grid_bubblebreaker(cmd.message.channel.name, user_data.id_server)
 
@@ -1462,7 +1551,7 @@ def create_mining_event(cmd):
 	life_states = [ewcfg.life_state_enlisted, ewcfg.life_state_juvenile]
 	num_miners = len(mine_district_data.get_players_in_district(life_states = life_states, ignore_offline = True))
 	
-	common_event_chance = 0.6 # 6/10
+	common_event_chance = 0.7 # 7/10
 	uncommon_event_chance = 0.3 # 3/10
 	rare_event_chance = 0.1 / num_miners # 1/10 for 1 miner, 1/20 for 2 miners, etc.
 	
@@ -1476,12 +1565,12 @@ def create_mining_event(cmd):
 	# 0.91 < (0.6 + 0.05), condition not met
 	# 0.91 < (0.9 + 0.05), condition met, uncommon event used
 	
-	if randomn < (common_event_chance + (0.1 - rare_event_chance)):
+	if randomn < common_event_chance: # + (0.1 - rare_event_chance)):
 		common_event_triggered = True
-	elif randomn < (common_event_chance + uncommon_event_chance + (0.1 - rare_event_chance)):
+	else: # randomn < (common_event_chance + uncommon_event_chance + (0.1 - rare_event_chance)):
 		uncommon_event_triggered = True
-	else:
-		rare_event_triggered = True
+	#else:
+	#	rare_event_triggered = True
 
 	# common event
 	if common_event_triggered:
@@ -1518,7 +1607,7 @@ def create_mining_event(cmd):
 		randomn = random.random()
 
 		# gap into the void
-		if randomn < 0.1:
+		if randomn < 0.05:
 			event_props = {}
 			event_props['id_user'] = cmd.message.author.id
 			event_props['poi'] = user_data.poi
@@ -1535,7 +1624,7 @@ def create_mining_event(cmd):
 			event_props = {}
 			event_props['id_user'] = cmd.message.author.id
 			event_props['poi'] = user_data.poi
-			event_props['captcha'] = ewutils.generate_captcha(length = 8)
+			event_props['captcha'] = ewutils.generate_captcha(length = 8, id_user=user_data.id_user ,id_server=user_data.id_server)
 			event_props['channel'] = cmd.message.channel.name
 			return ewworldevent.create_world_event(
 				id_server = cmd.guild.id,
@@ -1557,7 +1646,8 @@ def create_mining_event(cmd):
 				time_expir = time_now + 5,
 				event_props = event_props
 			)
-			
+
+	"""
 	# rare event
 	elif rare_event_triggered:
 		randomn = random.random()
@@ -1587,8 +1677,26 @@ def create_mining_event(cmd):
 				time_expir = time_now + 60*3,
 				event_props = event_props
 			)
+		"""
 
-def gen_scavenge_captcha(n = 0):
+def gen_scavenge_captcha(n = 0, id_user = 0, id_server = 0):
 	captcha_length = math.ceil(n / 3)
 
-	return ewutils.generate_captcha(captcha_length)
+	return ewutils.generate_captcha(length=captcha_length, id_server=id_server, id_user=id_user)
+
+
+async def juviemode(cmd):
+	user_data = EwUser(member = cmd.message.author)
+	status_effects = user_data.getStatusEffects()
+
+	if ewcfg.status_juviemode_id in status_effects:
+		user_data.clear_status(id_status=ewcfg.status_juviemode_id)
+		response = "You can't fucking take anymore. Slime. You need slime. SLIME. **SLLLLLLLLIIIIIIIIIMMMMMMMEEEEE!!!!!!!**"
+	elif user_data.life_state != ewcfg.life_state_juvenile:
+		response = "You think anyone but a cowardly ass Juvie would follow the law? You're not cut out for that life."
+	elif user_data.slimelevel > ewcfg.max_safe_level:
+		response = "You need to be level 18 and under. You're too plump with slime to start following the law now. Get dead, kid."
+	else:
+		user_data.applyStatus(id_status=ewcfg.status_juviemode_id)
+		response = "You summon forth all the cowardice in your heart, to forgo even slime, the most basic joy. You vow to carry no more than 100,000, the NLACakaNM's legal limit, on your person at any time."
+	return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))

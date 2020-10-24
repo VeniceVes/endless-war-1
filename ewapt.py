@@ -20,6 +20,7 @@ import ewhunting
 import ewwep
 import ewquadrants
 import ewdistrict
+import ewmutation
 
 from ewitem import EwItem
 from ewdistrict import EwDistrict
@@ -689,6 +690,7 @@ async def store_item(cmd, dest):
 	destination = dest #used to separate the compartment keyword from the string displayed to the user.
 	playermodel = EwPlayer(id_user=cmd.message.author.id)
 	usermodel = EwUser(id_user=cmd.message.author.id, id_server=playermodel.id_server)
+	user_mutations = usermodel.get_mutations()
 	apt_model = EwApartment(id_server=playermodel.id_server, id_user=cmd.message.author.id)
 	item_search = ewutils.flattenTokenListToString(cmd.tokens[1:])
 	item_sought = ewitem.find_item(item_search=item_search, id_user=cmd.message.author.id, id_server=playermodel.id_server)
@@ -727,7 +729,7 @@ async def store_item(cmd, dest):
 			else:
 				destination = ewcfg.compartment_id_closet
 
-		storage_limit_base = 4
+		storage_limit_base = 8
 		if apt_model.apt_class == ewcfg.property_class_b:
 			storage_limit_base *= 2
 
@@ -737,6 +739,8 @@ async def store_item(cmd, dest):
 		elif apt_model.apt_class == ewcfg.property_class_s:
 			storage_limit_base *= 8
 
+		if ewcfg.mutation_id_packrat in user_mutations:
+			storage_limit_base *= 2
 
 		name_string = item_sought.get('name')
 
@@ -1425,13 +1429,6 @@ async def knock(cmd = None):
 						if message.content.lower() == ewcfg.cmd_refuse:
 							accepted = False
 
-							user_data = EwUser(member=cmd.message.author)
-							
-							# Flag the person knocking to discourage spam
-							enlisted = True if user_data.life_state == ewcfg.life_state_enlisted else False
-							user_data.time_expirpvp = ewutils.calculatePvpTimer(user_data.time_expirpvp, ewcfg.time_pvp_knock, enlisted)
-							user_data.persist()
-							await ewrolemgr.updateRoles(client=cmd.client, member=cmd.message.author)
 							await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, "They don't want your company, and have tipped off the authorities."))
 					else:
 						pass
@@ -1481,7 +1478,7 @@ async def trickortreat(cmd = None):
 		response = "The undead are too wicked and impure for such acts. Seems you can't have your cake and !haunt it too on Double Halloween."
 		return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
 
-	if user_data.hunger >= ewutils.hunger_max_bylevel(user_data.slimelevel):
+	if user_data.hunger >= user_data.get_hunger_max():
 		response = "You're too hungry to trick-or-treat right now."
 		return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
 
@@ -2310,8 +2307,15 @@ async def jam(cmd):
 		if item.item_props.get("id_furniture") in ewcfg.furniture_instrument or item.item_props.get("weapon_type") == ewcfg.weapon_id_bass:
 			cycle = random.randrange(20)
 			response = ""
-			for x in range(1, cycle):
-				response += random.choice([":musical_note:", ":notes:"])
+			if random.randint(0, 10) == 0:
+				if item.item_props.get("id_furniture") == None:
+					item_key = "bass"
+				else:
+					item_key = item.item_props.get("id_furniture")
+				response = random.choice(ewcfg.jam_tunes[item_key])
+			else:
+				for x in range(1, cycle):
+					response += random.choice([":musical_note:", ":notes:"])
 		else:
 			response = "You place your mouth on the {} but it makes no noise. Either that's not an instrument or you aren't good enough.".format(item_sought.get('name'))
 	else:
@@ -2349,8 +2353,6 @@ async def aptCommands(cmd):
 	cmd_text = cmd.tokens[0].lower() if tokens_count >= 1 else ""
 	player = EwPlayer(id_user=cmd.message.author.id)
 	user_data = EwUser(id_user=cmd.message.author.id, id_server=player.id_server)
-	server = ewcfg.server_list[user_data.id_server]
-	member_object = server.get_member(user_data.id_user)
 
 	if cmd_text == ewcfg.cmd_depart or cmd_text == ewcfg.cmd_retire:
 		return await depart(cmd)
@@ -2399,7 +2401,7 @@ async def aptCommands(cmd):
 	elif cmd_text == ewcfg.cmd_browse:
 		return await browse(cmd=cmd)
 	# from here, all commands are prebuilt and just set to work in DMs
-	cmd.message.author = member_object
+
 	if cmd_text == ewcfg.cmd_use:
 		return await ewitem.item_use(cmd=cmd)
 	elif cmd_text == ewcfg.cmd_pot:
@@ -2530,6 +2532,20 @@ async def aptCommands(cmd):
 		return await ewdistrict.tag(cmd=cmd)
 	elif cmd_text == ewcfg.cmd_sidearm:
 		return await ewwep.sidearm(cmd=cmd)
+	elif cmd_text == ewcfg.cmd_stink:
+		return await ewmutation.waft(cmd=cmd)
+	elif cmd_text == ewcfg.cmd_bleedout:
+		return await ewmutation.bleedout(cmd=cmd)
+	elif cmd_text == ewcfg.cmd_thirdeye:
+		return await ewmap.tracker(cmd=cmd)
+	elif cmd_text == ewcfg.cmd_track:
+		return await ewmutation.track_oneeyeopen(cmd=cmd)
+	elif cmd_text == ewcfg.cmd_preserve:
+		return await ewmutation.preserve(cmd=cmd)
+	elif cmd_text == ewcfg.cmd_clench:
+		return await ewmutation.clench(cmd=cmd)
+	elif cmd_text == ewcfg.cmd_longdrop:
+		return await ewitem.longdrop(cmd=cmd)
 	#elif cmd_text == ewcfg.cmd_trick or cmd_text == ewcfg.cmd_treat:
 	#	pass
 	elif cmd_text[0]==ewcfg.cmd_prefix: #faliure text

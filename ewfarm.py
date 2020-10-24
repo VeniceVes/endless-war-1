@@ -212,12 +212,15 @@ async def reap(cmd):
 					if has_tool and weapon.id_weapon == ewcfg.weapon_id_hoe:
 						slime_gain *= 1.5
 
+					if ewcfg.mutation_id_greenfingers in mutations:
+						slime_gain *= 1.2
+
 					if user_data.poi == ewcfg.poi_id_jr_farms:
 						slime_gain = int(slime_gain / 4)
 
-					trauma = ewcfg.trauma_map.get(user_data.trauma)
-					if trauma != None and trauma.trauma_class == ewcfg.trauma_class_slimegain:
-						slime_gain *= (1 - 0.5 * user_data.degradation / 100)
+					#trauma = ewcfg.trauma_map.get(user_data.trauma)
+					#if trauma != None and trauma.trauma_class == ewcfg.trauma_class_slimegain:
+					#	slime_gain *= (1 - 0.5 * user_data.degradation / 100)
 
 					slime_gain = max(0, round(slime_gain))
 
@@ -269,6 +272,10 @@ async def reap(cmd):
 						metallic_crop_ammount = 1
 						if random.randrange(10) == 0:
 							metallic_crop_ammount = 5 if random.randrange(2) == 0 else 6
+
+						if has_tool and weapon.id_weapon == ewcfg.weapon_id_pitchfork:
+							metallic_crop_ammount *= 2
+
 						
 						for vcreate in range(metallic_crop_ammount):
 							ewitem.item_create(
@@ -297,7 +304,7 @@ async def reap(cmd):
 					else:
 						unearthed_vegetable_amount = 3
 						if has_tool and weapon.id_weapon == ewcfg.weapon_id_pitchfork:
-							unearthed_vegetable_amount += 3
+							unearthed_vegetable_amount *= 2
 
 						for vcreate in range(unearthed_vegetable_amount):
 							ewitem.item_create(
@@ -318,15 +325,14 @@ async def reap(cmd):
 						response += "\n\n" + levelup_response
 
 					user_data.hunger += ewcfg.hunger_perfarm
-					# Flag the user for PvP
-					#enlisted = True if user_data.life_state == ewcfg.life_state_enlisted else False
-					# user_data.time_expirpvp = ewutils.calculatePvpTimer(user_data.time_expirpvp, ewcfg.time_pvp_farm, enlisted)
-
 					user_data.persist()
 
 					farm.time_lastsow = 0  # 0 means no seeds are currently planted
 					farm.persist()
-					await ewrolemgr.updateRoles(client = cmd.client, member = cmd.message.author)
+					
+					# gangsters don't need their roles updated
+					if user_data.life_state == ewcfg.life_state_juvenile:
+						await ewrolemgr.updateRoles(client = cmd.client, member = cmd.message.author)
 
 
 	await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
@@ -427,10 +433,13 @@ async def sow(cmd):
 				else:
 					response = "The soil has enough toxins without you burying your trash here."
 					return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
-				
+
+				mutations = user_data.get_mutations()
 				growth_time = ewcfg.crops_time_to_grow
 				if user_data.life_state == ewcfg.life_state_juvenile:
 					growth_time /= 2
+				if ewcfg.mutation_id_greenfingers in mutations:
+					growth_time /= 1.5
 				
 				hours = int(growth_time / 60)
 				minutes = int(growth_time % 60)

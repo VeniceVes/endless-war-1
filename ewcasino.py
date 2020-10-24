@@ -151,6 +151,9 @@ async def pachinko(cmd):
 
 	# Send the response to the player.
 	await ewutils.edit_message(cmd.client, resp, ewutils.formatMessage(cmd.message.author, response))
+	# gangsters don't need their roles updated
+	if user_data.life_state == ewcfg.life_state_juvenile:
+		await ewrolemgr.updateRoles(client = cmd.client, member = cmd.message.author)
 
 
 async def craps(cmd):
@@ -282,6 +285,9 @@ async def craps(cmd):
 
 	# Send the response to the player.
 	await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
+	# gangsters don't need their roles updated
+	if user_data.life_state == ewcfg.life_state_juvenile:
+		await ewrolemgr.updateRoles(client = cmd.client, member = cmd.message.author)
 
 async def slots(cmd):
 	resp = await ewcmd.start(cmd = cmd)
@@ -466,6 +472,9 @@ async def slots(cmd):
 
 	# Send the response to the player.
 	await ewutils.edit_message(cmd.client, resp, ewutils.formatMessage(cmd.message.author, response))
+	# gangsters don't need their roles updated
+	if user_data.life_state == ewcfg.life_state_juvenile:
+		await ewrolemgr.updateRoles(client = cmd.client, member = cmd.message.author)
 
 async def roulette(cmd):
 	resp = await ewcmd.start(cmd = cmd)
@@ -674,6 +683,9 @@ async def roulette(cmd):
 
 	# Send the response to the player.
 	await ewutils.edit_message(cmd.client, resp, ewutils.formatMessage(cmd.message.author, response))
+	# gangsters don't need their roles updated
+	if user_data.life_state == ewcfg.life_state_juvenile:
+		await ewrolemgr.updateRoles(client = cmd.client, member = cmd.message.author)
 
 async def baccarat(cmd):
 	resp = await ewcmd.start(cmd = cmd)
@@ -1317,6 +1329,9 @@ async def baccarat(cmd):
 
 				user_data.persist()
 				await ewutils.edit_message(cmd.client, resp_f, ewutils.formatMessage(cmd.message.author, response))
+				# gangsters don't need their roles updated
+				if user_data.life_state == ewcfg.life_state_juvenile:
+					await ewrolemgr.updateRoles(client = cmd.client, member = cmd.message.author)
 
 		else:
 			response = "Specify how much {} you will wager.".format(currency_used)
@@ -1389,8 +1404,11 @@ async def russian_roulette(cmd):
 		response = "Both players must be in the casino."
 		return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(author, response))
 
+	challenger_mutations = challenger.get_mutations()
+	challengee_mutations = challengee.get_mutations()
+
 	#Players have to be enlisted
-	playable_life_states = [ewcfg.life_state_enlisted,ewcfg.life_state_lucky,ewcfg.life_state_executive]
+	playable_life_states = [ewcfg.life_state_enlisted,ewcfg.life_state_lucky,ewcfg.life_state_executive, ewcfg.life_state_juvenile]
 	if challenger.life_state not in playable_life_states or challengee.life_state not in playable_life_states:
 		if challenger.life_state == ewcfg.life_state_corpse:
 			response = "You try to grab the gun, but it falls through your hands. Ghosts can't hold weapons.".format(author.display_name).replace("@", "\{at\}")
@@ -1409,6 +1427,12 @@ async def russian_roulette(cmd):
 			return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(author, response))
 	elif (challenger.has_soul == 0 or challengee.has_soul == 0) and soulstake:
 		response = "A soul game of russian roulette can't be played unless both players have souls planted firmly in their body."
+		return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(author, response))
+	elif (challenger.life_state == ewcfg.life_state_juvenile and ewcfg.mutation_id_nervesofsteel not in challenger_mutations):
+		response = "Juveniles are usually too cowardly to gamble their lives."
+		return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(author, response))
+	elif (challengee.life_state == ewcfg.life_state_juvenile and ewcfg.mutation_id_nervesofsteel not in challengee_mutations):
+		response = "Juveniles are usually too cowardly to gamble their lives."
 		return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(author, response))
 
 	#Assign a challenger so players can't be challenged
@@ -1682,15 +1706,6 @@ async def duel(cmd):
 			
 		response = "{}***DRAW!***{}".format(ewcfg.emote_slimegun, ewcfg.emote_slimegun)
 		await ewutils.send_message(cmd.client, cmd.message.channel, response)
-		challenger = EwUser(member=author)
-		challengee = EwUser(member=member)
-		
-		# start the duel
-		challenger.time_expirpvp = ewutils.calculatePvpTimer(challenger.time_expirpvp, ewcfg.time_pvp_duel)
-		challengee.time_expirpvp = ewutils.calculatePvpTimer(challengee.time_expirpvp, ewcfg.time_pvp_duel)
-
-		challenger.persist()
-		challengee.persist()
 
 		await ewrolemgr.updateRoles(client=cmd.client, member=author)
 		await ewrolemgr.updateRoles(client=cmd.client, member=member)
@@ -1719,16 +1734,12 @@ async def duel(cmd):
 			await ewutils.send_message(cmd.client, cmd.message.channel, response)
 			challengee = EwUser(member=member)
 
-			challengee.time_expirpvp -= duel_timer
-
 		elif challengee.slimes <= 0:
 			# challengee lost
 			response = "**{} has won the duel!!**".format(author.display_name).replace("@","\{at\}")
 			await ewutils.send_message(cmd.client, cmd.message.channel, response)
 			challenger = EwUser(member=author)
 
-			challenger.time_expirpvp -= duel_timer
-		
 		else:
 			# timer stall
 			response = "**Neither dueler was bloodthirsty enough to finish the job in time! The duel is over!**"
@@ -2062,7 +2073,7 @@ async def skat(cmd):
 		return await ewutils.send_message(cmd.client, cmd.message.channel, ewutils.formatMessage(cmd.message.author, response))
 
 	user_data = EwUser(member=cmd.message.author)
-	poi = ewcfg.id_to_poi.get(user_data.id_server)
+	poi = ewcfg.id_to_poi.get(user_data.poi)
 	district_data = EwDistrict(district = poi.id_poi, id_server = user_data.id_server)
 
 	if district_data.is_degraded():
