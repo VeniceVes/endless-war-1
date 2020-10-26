@@ -2977,6 +2977,7 @@ weapon_id_umbrella = 'umbrella'
 weapon_id_bow = 'bow'
 weapon_id_dclaw = 'dclaw'
 weapon_id_staff = 'staff'
+weapon_id_chainsaw = 'chainsaw'
 
 weapon_id_spraycan = 'spraycan'
 weapon_id_paintgun = 'paintgun'
@@ -4808,6 +4809,14 @@ def get_weapon_type_stats(weapon_type):
 			"hit_chance": 0.5,
 			"shots": 10
 		},
+		"chainsaw": {
+			"damage_multiplier": 1,
+			"cost_multiplier": 2.5,
+			"crit_chance": 0.1,
+			"crit_multiplier": 1.5,
+			"hit_chance": 0.85,
+			"shots": 5
+		},
 		"incendiary": {
 			"damage_multiplier": 0.75,
 			"bystander_damage": 0.5,
@@ -6107,6 +6116,38 @@ weapon_list = [
 		'crit_spray' : "**Critical hit!** A bystander walking by kicks your roomba as it's moving, which inadvertently overclocks its processor!! It speeds around the area with reckless abandon. Go go go!",
 		'equip_spray' : "You pull out your roomba and set it on the ground."
 	}
+	),
+	EwWeapon( # 36
+		id_weapon = weapon_id_chainsaw,
+		alias = [
+			"ripper",
+			"motoraxe"
+		],
+		str_crit = "**Critical hit!!** The jagged teeth of the chainsaw rest within {name_target}, body as the slime flies!!",
+		str_miss = "**You missed!!** In {name_player}’s excitement and desperation neither chain nor saw hits {name_target}!",
+		str_equip = "You equip the chainsaw.",
+		str_name = "chainsaw",
+		str_weapon = "a chainsaw",
+		str_weaponmaster_self = "You are a rank {rank} wielder of the chainsaw.",
+		str_weaponmaster = "They are a rank {rank} wielder of the chainsaw.",
+		#str_trauma_self = "Your body runs jagged with large chunks missing and patches of skin torn up.",
+		#str_trauma = "Your body runs jagged with large chunks missing and patches of skin torn up.",
+		str_kill = "**REEERNREERN!!** {name_player} revs up their chainsaw and carves up {name_target}’s torso, cutting through the gunts,bile,viscara, and slime; sending it all flying. They’ve been cut down to size. {emote_skull}",
+		str_killdescriptor = "chainsaw’d",
+		str_damage = "The numerous finely tooth blades tear at {name_target}’s {hitzone}!!",
+		str_duel = "**...** {name_player} and {name_target} clash with each other chainsaw blow for chainsaw blow like badasses.",
+		str_description = "It's a chainsaw.",
+		#str_reload = "You desperately pull at the ripcord of your chainsaw trying to rev it back up to speed.",
+		#str_reload_warning = "**REEERNREERN--** *shhhhh…* **FUCK!!** {name_player}’s chainsaw just ran out of it’s rev!!",
+		str_scalp = "It’s more like a collection of dandruff then a scalp.",
+		fn_effect = get_normal_attack(weapon_type = 'minigun'),
+		price = 1000000,
+		vendors = [vendor_basedhardware],
+		classes= [weapon_class_captcha],
+		stat = stat_chainsaw_kills,
+		captcha_length = 6
+	),
+
 	),
 ]
 
@@ -12610,10 +12651,17 @@ trauma_list = [
 			trauma_class = trauma_class_accuracy,
 		),
 	EwTrauma( # 15
-				id_trauma = weapon_id_roomba,
-				str_trauma_self = "Your skin is stretched amd misshapen, flabby and tight in different spots.",
-				str_trauma = "Their skin is stretched amd misshapen, flabby and tight in different spots.",
-				trauma_class = trauma_class_accuracy,
+			id_trauma = weapon_id_roomba,
+			str_trauma_self = "Your skin is stretched amd misshapen, flabby and tight in different spots.",
+			str_trauma = "Their skin is stretched amd misshapen, flabby and tight in different spots.",
+			trauma_class = trauma_class_accuracy,
+		),
+	EwTrauma(  # 16
+			id_trauma=weapon_id_chainsaw,
+			str_trauma_self="Your body runs jagged with large chunks missing and patches of skin torn up.",
+			str_trauma="Their body runs jagged with large chunks missing and patches of skin torn up.",
+			trauma_class=trauma_class_bleeding,
+		),
 			),
 ]
 
@@ -12767,6 +12815,7 @@ help_responses = {
 	weapon_id_garrote: "**The Garrote Wire** is a unique weapon. It has a damage modifier of 1500%, no cost modifier, guaranteed hits, and a 1% chance for a crit, which does 1000% damage. When you attack with a garrote, the target has 5 seconds to send any message before the damage is done. If they do, the attack fails.",
 	weapon_id_minigun: "The **Minigun** is a special variant of **variable damage weapons**. It deals ten attacks per kill command with an overall cost modifier of 500%, and each attack has a 30% damage modifier, 10% crit chance, a crit multiplier of 200%, and a 50% chance to hit, with a captcha of 6. This is a strange weapon that can potentially deal astronomical damage if used in the right circumstances, and if you're willing to deal with its exceptionally long captcha.",
 	weapon_id_staff: "The **Eldritch Staff** is a unique weapon. By default, it has a damage modifier of 30%, a cost modifier of 200%, guaranteed hits, no crit chance, and a crit multiplier of 180%. A number of conditions may be met to increase the damage multiplier by 60% and crit chance by 6.66%: tenebrous weather and locations, grudges between the user and its target, the time of day, and the user's general degeneracy will all contribute to the weapon's effectiveness.",
+	weapon_id_chainsaw: "The **Chainsaw** is a uniuqe weapon. It does five attacks per !kill and"
 
 	weapon_id_spraycan: "**The spray can** is a paint tool for sale at Based Hardware. It has a capping modifier of 0.8 and a spray cost mod of 1. It has a captcha length of 4, a miss chance of 10% and a 10% chance for a crit, which does 2x influence.",
 	weapon_id_paintgun: "**The paint gun** is a paint tool for sale at Based Hardware. It has a capping modifier of 0.7 and a spray cost mod of 0.75. It has a captcha length of 6, a miss chance of O% and a 20% chance for a crit, which does 2x influence.",
@@ -12797,7 +12846,7 @@ weapon_help_responses_ordered_keys = [
 	weapon_id_nunchucks, weapon_id_scythe, weapon_id_yoyo,
 	weapon_id_bass, weapon_id_umbrella, weapon_id_knives,
 	weapon_id_molotov, weapon_id_grenades, weapon_id_dclaw, weapon_id_bow,
-	weapon_id_garrote, weapon_id_minigun, weapon_id_staff,
+	weapon_id_garrote, weapon_id_minigun, weapon_id_chainsaw, weapon_id_staff,
 	weapon_id_spraycan, weapon_id_paintgun, weapon_id_paintroller, weapon_id_paintbrush,
 	weapon_id_watercolors, weapon_id_thinnerbomb,
 	"normal", "multiple-hit", "variable-damage",
@@ -14479,6 +14528,7 @@ captcha_dict = [
 	'WITHDRAW', 'SOUTHERN', 'NORTHERN', 'ASTATINE', 'SLIMEOID',
 	'SHAMBLIN', 'STAYDEAD', 'DOWNTOWN', 'DISTRICT', 'BASEBALL',
 	'BIGBONES', 'LONEWOLF', 'KEENSMELL', 'RAZORNUTS', 'REVOLVER',
+	'CHAINSAW',
 	#9
 	'APARTMENT', 'SURVIVORS', 'NEGASLIME', 'COMMUNITY', 'GIGASLIME',
 	'DETENTION', 'CATHEDRAL', 'TOXINGTON', 'SLIMEGIRL', 'INVESTING',
